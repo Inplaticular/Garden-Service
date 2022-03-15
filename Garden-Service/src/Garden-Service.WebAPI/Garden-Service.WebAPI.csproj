@@ -10,15 +10,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Garden-Service.Infrastructure\Garden-Service.Infrastructure.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Controllers" />
     </ItemGroup>
 
 </Project>

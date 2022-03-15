@@ -12,6 +12,8 @@ public class Plant {
 		ActFruitCount = actFruitCount;
 	}
 
+	public int PlantId { get; set; }
+
 	//semi-final member. Not changed often
 	//general
 	public string FriendlyName { get; set; }
