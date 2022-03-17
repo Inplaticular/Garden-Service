@@ -1,32 +1,25 @@
-using StackExchange.Redis;
+using Inplanticular.Garden_Service.Core.Models;
+using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
+namespace Inplanticular.Garden_Service.WebAPI;
 
-// Add services to the container.
-void ConfigureServices(IServiceCollection services)
-{
-	//Configure other services up here
-	var multiplexer = ConnectionMultiplexer.Connect("localhost");
-	services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+public class Program {
+	public static async Task Main(string[] args) {
+		var host = CreateHostBuilder(args).Build();
+		
+		using (var scope = host.Services.CreateScope()) {
+			var gardenContext = scope.ServiceProvider.GetRequiredService<GardenContext>();
+			var pendingMigrations = await gardenContext.Database.GetPendingMigrationsAsync();
+			
+			if (pendingMigrations.Any())
+				await gardenContext.Database.MigrateAsync();
+		}
+
+		await host.RunAsync();
+	}
+
+	public static IHostBuilder CreateHostBuilder(string[] args) {
+		return Host.CreateDefaultBuilder(args)
+			.ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+	}
 }
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment()) {
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
