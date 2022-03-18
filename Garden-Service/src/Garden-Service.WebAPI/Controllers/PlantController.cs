@@ -15,10 +15,15 @@ public class PlantController : ControllerBase {
 		_logger = logger;
 	}
 
-	[HttpPut(Name = "create")]
+	[HttpPost(Name = "create_plant")]
 	public IActionResult CreatePlant(CreatePlantRequest request) {
 		var createPlantResponse = _plantService.CreatePlantAsync(request).GetAwaiter().GetResult();
 		return Ok(createPlantResponse);
 	}
+
+	[HttpDelete(Name = "delete_plant")]
+	public IActionResult DeletePlant(DeletePlantRequest request) {
+		var deletePlantResponse = _plantService.DeletePlantAsync(request).GetAwaiter().GetResult();
+		return Ok(deletePlantResponse);
+	}
 }
-	

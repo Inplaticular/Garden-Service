@@ -5,17 +5,17 @@ public class CreatePlantResponse : BaseResponse {
 
 	public static class Message {
 		public static readonly ValueObjects.Message
-			GardenCreationSuccessfully = new() {
-				Code = nameof(GardenCreationSuccessfully),
-				Description = "The garden was created successfully."
+			PlantCreationSuccessfully = new() {
+				Code = nameof(PlantCreationSuccessfully),
+				Description = "The plant was created successfully."
 			};
 	}
 
 	public static class Error {
 		public static readonly ValueObjects.Message
-			GardenCreationError = new() {
-				Code = nameof(GardenCreationError),
-				Description = "The creation of the garden wasn't successfully."
+			PlantCreationError = new() {
+				Code = nameof(PlantCreationError),
+				Description = "The creation of the plant wasn't successfully."
 			};
 	}
 }

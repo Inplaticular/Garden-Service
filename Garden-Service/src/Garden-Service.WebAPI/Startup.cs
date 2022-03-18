@@ -20,6 +20,7 @@ public class Startup {
 		);
 
 		services.AddScoped<IPlantService, PlantService>();
+		services.AddScoped<IGardenService, GardenService>();
 
 		services.AddControllers();
 		services.AddEndpointsApiExplorer();

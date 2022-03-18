@@ -1,6 +1,6 @@
 ﻿namespace Inplanticular.Garden_Service.Core.Contracts.V1.Responses;
 
-public class DeleteGardenResponse {
+public class DeleteGardenResponse : BaseResponse{
 	public static class Message {
 		public static readonly ValueObjects.Message
 			GardenDeletionSuccessfully = new() {
