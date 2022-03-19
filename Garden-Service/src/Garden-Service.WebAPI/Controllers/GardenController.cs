@@ -16,20 +16,20 @@ public class GardenController : ControllerBase {
 	}
 
 	[HttpPost(Name = "create_garden")]
-	public IActionResult CreateGarden(CreateGardenRequest request) {
-		var createGardenResponse = _gardenService.CreateGardenAsync(request).GetAwaiter().GetResult();
+	public async Task<OkObjectResult> CreateGarden(CreateGardenRequest request) {
+		var createGardenResponse = await _gardenService.CreateGardenAsync(request);
 		return Ok(createGardenResponse);
 	}
 
 	[HttpPut(Name = "update_garden")]
-	public IActionResult UpdateGarden(EditGardenRequest request) {
-		var editGardenResponse = _gardenService.EditGardenAsync(request).GetAwaiter().GetResult();
+	public async Task<IActionResult> UpdateGarden(EditGardenRequest request) {
+		var editGardenResponse =  await _gardenService.EditGardenAsync(request);
 		return Ok(editGardenResponse);
 	}
 
 	[HttpDelete(Name = "delete_garden")]
-	public IActionResult DeleteGarden(DeleteGardenRequest request) {
-		var deleteGardenResponse = _gardenService.DeleteGardenAsync(request).GetAwaiter().GetResult();
+	public async Task<IActionResult> DeleteGarden(DeleteGardenRequest request) {
+		var deleteGardenResponse = await _gardenService.DeleteGardenAsync(request);
 		return Ok(deleteGardenResponse);
 	}
 }

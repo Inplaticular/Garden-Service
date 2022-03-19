@@ -42,7 +42,7 @@ public class GardenService : IGardenService {
 	public async Task<EditGardenResponse> EditGardenAsync(EditGardenRequest request) {
 		EditGardenResponse editGardenResponse;
 		var garden = _gardenContext.Gardens.SingleOrDefault(g => g.GardenId == request.GardenId);
-		if (garden != null) {
+		if (garden is not null) {
 			garden.Name = request.Name;
 			try {
 				await _gardenContext.SaveChangesAsync();
@@ -55,7 +55,7 @@ public class GardenService : IGardenService {
 			}
 			catch (Exception e) {
 				editGardenResponse = new EditGardenResponse {
-					Succeeded = true,
+					Succeeded = false,
 					Errors = new[] {EditGardenResponse.Error.GardenAlterationErrorGeneral}
 				};
 				return editGardenResponse;

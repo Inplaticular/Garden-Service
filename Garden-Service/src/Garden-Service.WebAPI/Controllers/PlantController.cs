@@ -16,14 +16,14 @@ public class PlantController : ControllerBase {
 	}
 
 	[HttpPost(Name = "create_plant")]
-	public IActionResult CreatePlant(CreatePlantRequest request) {
-		var createPlantResponse = _plantService.CreatePlantAsync(request).GetAwaiter().GetResult();
+	public async Task<IActionResult> CreatePlant(CreatePlantRequest request) {
+		var createPlantResponse = await _plantService.CreatePlantAsync(request);
 		return Ok(createPlantResponse);
 	}
 
 	[HttpDelete(Name = "delete_plant")]
-	public IActionResult DeletePlant(DeletePlantRequest request) {
-		var deletePlantResponse = _plantService.DeletePlantAsync(request).GetAwaiter().GetResult();
+	public async Task<IActionResult> DeletePlant(DeletePlantRequest request) {
+		var deletePlantResponse = await _plantService.DeletePlantAsync(request);
 		return Ok(deletePlantResponse);
 	}
 }
