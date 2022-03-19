@@ -14,7 +14,7 @@ public class GardenService : IGardenService {
 
 
 	public async Task<CreateGardenResponse> CreateGardenAsync(CreateGardenRequest request) {
-		var garden = new Garden(request.Name, DateTime.Now);
+		var garden = new Garden(request.Name, DateTime.UtcNow);
 		_gardenContext.Gardens.Add(garden);
 		await _gardenContext.SaveChangesAsync();
 		var createGardenResponse = new CreateGardenResponse {
@@ -37,5 +37,35 @@ public class GardenService : IGardenService {
 			Messages = new[] {DeleteGardenResponse.Message.GardenDeletionSuccessfully}
 		};
 		return deleteGardenResponse;
+	}
+
+	public async Task<EditGardenResponse> EditGardenAsync(EditGardenRequest request) {
+		EditGardenResponse editGardenResponse;
+		var garden = _gardenContext.Gardens.SingleOrDefault(g => g.GardenId == request.GardenId);
+		if (garden != null) {
+			garden.Name = request.Name;
+			try {
+				await _gardenContext.SaveChangesAsync();
+				editGardenResponse = new EditGardenResponse {
+					Succeeded = true,
+					Messages = new[] {EditGardenResponse.Message.GardenAlterationSuccessfully}
+				};
+
+				return editGardenResponse;
+			}
+			catch (Exception e) {
+				editGardenResponse = new EditGardenResponse {
+					Succeeded = true,
+					Errors = new[] {EditGardenResponse.Error.GardenAlterationErrorGeneral}
+				};
+				return editGardenResponse;
+			}
+		}
+
+		editGardenResponse = new EditGardenResponse {
+			Succeeded = false,
+			Errors = new[] {EditGardenResponse.Error.GardenAlterationErrorIdNotFound}
+		};
+		return editGardenResponse;
 	}
 }

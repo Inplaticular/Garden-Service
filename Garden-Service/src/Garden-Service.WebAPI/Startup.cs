@@ -33,7 +33,7 @@ public class Startup {
 			applicationBuilder.UseSwagger();
 			applicationBuilder.UseSwaggerUI();
 		}
-
+		AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 		applicationBuilder.UseHttpsRedirection();
 
 		applicationBuilder.UseAuthorization();

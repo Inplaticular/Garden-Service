@@ -21,6 +21,12 @@ public class GardenController : ControllerBase {
 		return Ok(createGardenResponse);
 	}
 
+	[HttpPut(Name = "update_garden")]
+	public IActionResult UpdateGarden(EditGardenRequest request) {
+		var editGardenResponse = _gardenService.EditGardenAsync(request).GetAwaiter().GetResult();
+		return Ok(editGardenResponse);
+	}
+
 	[HttpDelete(Name = "delete_garden")]
 	public IActionResult DeleteGarden(DeleteGardenRequest request) {
 		var deleteGardenResponse = _gardenService.DeleteGardenAsync(request).GetAwaiter().GetResult();
