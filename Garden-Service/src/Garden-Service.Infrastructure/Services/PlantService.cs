@@ -28,8 +28,7 @@ public class PlantService : IPlantService {
 			};
 		}
 		catch (Exception e) {
-			if (e.GetType() == typeof(DbUpdateException) || e.GetType() == typeof(DbUpdateConcurrencyException) ||
-			    e.GetType() == typeof(OperationCanceledException))
+			if (e is DbUpdateException or DbUpdateConcurrencyException or OperationCanceledException)
 				createPlantResponse = new CreatePlantResponse {
 					Succeeded = false,
 					Errors = new[] {CreatePlantResponse.Error.PlantCreationError}
@@ -56,8 +55,7 @@ public class PlantService : IPlantService {
 			};
 		}
 		catch (Exception e) {
-			if (e.GetType() == typeof(DbUpdateException) || e.GetType() == typeof(DbUpdateConcurrencyException) ||
-			    e.GetType() == typeof(OperationCanceledException))
+			if (e is DbUpdateException or DbUpdateConcurrencyException or OperationCanceledException)
 				deletePlantResponse = new DeletePlantResponse {
 					Succeeded = false,
 					Errors = new[] {DeletePlantResponse.Error.PlantDeletionError}

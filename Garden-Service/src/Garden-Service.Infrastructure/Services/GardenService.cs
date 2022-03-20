@@ -27,8 +27,7 @@ public class GardenService : IGardenService {
 			};
 		}
 		catch (Exception e) {
-			if (e.GetType() == typeof(DbUpdateException) || e.GetType() == typeof(DbUpdateConcurrencyException) ||
-			    e.GetType() == typeof(OperationCanceledException))
+			if (e is DbUpdateException or DbUpdateConcurrencyException or OperationCanceledException)
 				createGardenResponse = new CreateGardenResponse {
 					Succeeded = false,
 					Errors = new[] {CreateGardenResponse.Error.GardenCreationError}
@@ -54,8 +53,7 @@ public class GardenService : IGardenService {
 				};
 			}
 			catch (Exception e) {
-				if (e.GetType() == typeof(DbUpdateException) || e.GetType() == typeof(DbUpdateConcurrencyException) ||
-				    e.GetType() == typeof(OperationCanceledException))
+				if (e is DbUpdateException or DbUpdateConcurrencyException or OperationCanceledException)
 					deleteGardenResponse = new DeleteGardenResponse {
 						Succeeded = false,
 						Errors = new[] {DeleteGardenResponse.Error.GardenDeletionError}
@@ -85,8 +83,7 @@ public class GardenService : IGardenService {
 				return editGardenResponse;
 			}
 			catch (Exception e) {
-				if (e.GetType() == typeof(DbUpdateException) || e.GetType() == typeof(DbUpdateConcurrencyException) ||
-				    e.GetType() == typeof(OperationCanceledException))
+				if (e is DbUpdateException or DbUpdateConcurrencyException or OperationCanceledException)
 					editGardenResponse = new EditGardenResponse {
 						Succeeded = false,
 						Errors = new[] {EditGardenResponse.Error.GardenAlterationErrorGeneral}
