@@ -25,7 +25,7 @@ public class PlantController : ControllerBase {
 		}
 		catch (Exception e) {
 			_logger.LogError(e, $"{nameof(CreatePlant)} threw an exception");
-			return ControllerExtension.ErrorResponse<CreatePlantResponse>(this, e);
+			return this.ErrorResponse<CreatePlantResponse>(e);
 		}
 	}
 
@@ -37,7 +37,7 @@ public class PlantController : ControllerBase {
 		}
 		catch (Exception e) {
 			_logger.LogError(e, $"{nameof(DeletePlant)} threw an exception");
-			return ControllerExtension.ErrorResponse<DeletePlantResponse>(this, e);
+			return this.ErrorResponse<DeletePlantResponse>(e);
 		}
 	}
 }

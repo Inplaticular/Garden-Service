@@ -25,7 +25,7 @@ public class GardenController : ControllerBase {
 		}
 		catch (Exception e) {
 			_logger.LogError(e, $"{nameof(CreateGarden)} threw an exception");
-			return ControllerExtension.ErrorResponse<CreateGardenResponse>(this, e);
+			return this.ErrorResponse<CreateGardenResponse>(e);
 		}
 	}
 
@@ -37,7 +37,7 @@ public class GardenController : ControllerBase {
 		}
 		catch (Exception e) {
 			_logger.LogError(e, $"{nameof(UpdateGarden)} threw an exception");
-			return ControllerExtension.ErrorResponse<EditGardenResponse>(this, e);
+			return this.ErrorResponse<EditGardenResponse>(e);
 		}
 	}
 
@@ -49,7 +49,7 @@ public class GardenController : ControllerBase {
 		}
 		catch (Exception e) {
 			_logger.LogError(e, $"{nameof(DeleteGarden)} threw an exception");
-			return ControllerExtension.ErrorResponse<DeleteGardenResponse>(this, e);
+			return this.ErrorResponse<DeleteGardenResponse>(e);
 		}
 	}
 }

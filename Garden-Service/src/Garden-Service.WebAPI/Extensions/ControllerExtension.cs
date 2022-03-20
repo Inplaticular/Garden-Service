@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Inplanticular.Garden_Service.WebAPI.Extensions;
 
-public class ControllerExtension {
-	public static IActionResult ErrorResponse<TResponse>(ControllerBase controller, Exception exception)
+public static class ControllerExtension {
+	public static IActionResult ErrorResponse<TResponse>(this ControllerBase controller, Exception exception)
 		where TResponse : BaseResponse {
 		var response = Activator.CreateInstance<TResponse>();
 		response.Errors = new[] {
