@@ -19,7 +19,7 @@ public class EditGardenResponse : BaseResponse {
 		public static readonly ValueObjects.Message GardenAlterationErrorIdNotFound = new() {
 			Code = nameof(GardenAlterationErrorIdNotFound),
 			Description =
-				"The passed garden-id didnt retrieve any entry in the database. Please consider checking the id!"
+				"The passed garden-id didn't retrieve any entry in the database. Please consider checking the id!"
 		};
 	}
 }
