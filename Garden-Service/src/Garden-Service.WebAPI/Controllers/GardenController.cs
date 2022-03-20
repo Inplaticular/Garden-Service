@@ -1,5 +1,7 @@
 ﻿using Inplanticular.Garden_Service.Core.Contracts.V1.Requests;
+using Inplanticular.Garden_Service.Core.Contracts.V1.Responses;
 using Inplanticular.Garden_Service.Core.Services;
+using Inplanticular.Garden_Service.WebAPI.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inplanticular.Garden_Service.WebAPI.Controllers;
@@ -17,19 +19,37 @@ public class GardenController : ControllerBase {
 
 	[HttpPost(Name = "create_garden")]
 	public async Task<IActionResult> CreateGarden(CreateGardenRequest request) {
-		var createGardenResponse = await _gardenService.CreateGardenAsync(request);
-		return Ok(createGardenResponse);
+		try {
+			var createGardenResponse = await _gardenService.CreateGardenAsync(request);
+			return Ok(createGardenResponse);
+		}
+		catch (Exception e) {
+			_logger.LogError(e, $"{nameof(CreateGarden)} threw an exception");
+			return ControllerExtension.ErrorResponse<CreateGardenResponse>(this, e);
+		}
 	}
 
 	[HttpPut(Name = "update_garden")]
 	public async Task<IActionResult> UpdateGarden(EditGardenRequest request) {
-		var editGardenResponse = await _gardenService.EditGardenAsync(request);
-		return Ok(editGardenResponse);
+		try {
+			var editGardenResponse = await _gardenService.EditGardenAsync(request);
+			return Ok(editGardenResponse);
+		}
+		catch (Exception e) {
+			_logger.LogError(e, $"{nameof(UpdateGarden)} threw an exception");
+			return ControllerExtension.ErrorResponse<EditGardenResponse>(this, e);
+		}
 	}
 
 	[HttpDelete(Name = "delete_garden")]
 	public async Task<IActionResult> DeleteGarden(DeleteGardenRequest request) {
-		var deleteGardenResponse = await _gardenService.DeleteGardenAsync(request);
-		return Ok(deleteGardenResponse);
+		try {
+			var deleteGardenResponse = await _gardenService.DeleteGardenAsync(request);
+			return Ok(deleteGardenResponse);
+		}
+		catch (Exception e) {
+			_logger.LogError(e, $"{nameof(DeleteGarden)} threw an exception");
+			return ControllerExtension.ErrorResponse<DeleteGardenResponse>(this, e);
+		}
 	}
 }
