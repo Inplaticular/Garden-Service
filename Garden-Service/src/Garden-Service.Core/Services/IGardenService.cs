@@ -7,4 +7,6 @@ public interface IGardenService {
 	Task<CreateGardenResponse> CreateGardenAsync(CreateGardenRequest request);
 
 	Task<DeleteGardenResponse> DeleteGardenAsync(DeleteGardenRequest request);
+
+	Task<EditGardenResponse> EditGardenAsync(EditGardenRequest request);
 }
