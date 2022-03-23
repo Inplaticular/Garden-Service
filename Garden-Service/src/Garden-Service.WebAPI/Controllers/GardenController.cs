@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Inplanticular.Garden_Service.WebAPI.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("garden")]
 public class GardenController : ControllerBase {
 	private readonly IGardenService _gardenService;
 	private readonly ILogger<GardenController> _logger;
@@ -43,6 +43,18 @@ public class GardenController : ControllerBase {
 
 	[HttpDelete(Name = "delete_garden")]
 	public async Task<IActionResult> DeleteGarden(DeleteGardenRequest request) {
+		try {
+			var deleteGardenResponse = await _gardenService.DeleteGardenAsync(request);
+			return Ok(deleteGardenResponse);
+		}
+		catch (Exception e) {
+			_logger.LogError(e, $"{nameof(DeleteGarden)} threw an exception");
+			return this.ErrorResponse<DeleteGardenResponse>(e);
+		}
+	}
+	
+	[HttpGet(Name = "get_garden")]
+	public async Task<IActionResult> GetGarden(DeleteGardenRequest request) {
 		try {
 			var deleteGardenResponse = await _gardenService.DeleteGardenAsync(request);
 			return Ok(deleteGardenResponse);

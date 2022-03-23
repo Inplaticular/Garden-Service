@@ -13,7 +13,7 @@ public class Plant {
 		AvgFruitWeight = avgFruitWeight;
 	}
 
-	public int PlantId { get; set; }
+	public string PlantId { get; set; }
 
 	//semi-final member. Not changed often
 	//general

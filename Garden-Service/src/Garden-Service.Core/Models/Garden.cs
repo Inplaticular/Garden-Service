@@ -10,7 +10,8 @@ public class Garden {
 		DateOfCreation = dateOfCreation;
 	}
 
-	public int GardenId { get; set; }
+	public string GardenId { get; set; }
+	public string UserId { get; set; }
 	public string Name { get; set; }
 	public DateTime DateOfCreation { get; set; }
 	public List<Plant> Plants { get; } = new();
