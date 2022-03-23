@@ -22,4 +22,8 @@
       <ProjectReference Include="..\Garden-Service.Infrastructure\Garden-Service.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Migrations" />
+    </ItemGroup>
+
 </Project>

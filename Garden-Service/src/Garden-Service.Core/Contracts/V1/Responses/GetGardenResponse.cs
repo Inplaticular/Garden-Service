@@ -3,13 +3,13 @@
 namespace Inplanticular.Garden_Service.Core.Contracts.V1.Responses;
 
 public class GetGardenResponse : BaseResponse {
-	
-	public List<Garden> Gardens { get; set; }
+	public IEnumerable<Garden> Gardens { get; set; }
+
 	public static class Message {
 		public static readonly ValueObjects.Message
 			GardenReturnSuccessfully = new() {
 				Code = nameof(GardenReturnSuccessfully),
-				Description = "The garden was returned successfully."
+				Description = "The gardens was returned successfully."
 			};
 	}
 

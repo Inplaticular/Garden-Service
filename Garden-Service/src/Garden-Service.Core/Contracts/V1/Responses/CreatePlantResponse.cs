@@ -1,7 +1,7 @@
 ﻿namespace Inplanticular.Garden_Service.Core.Contracts.V1.Responses;
 
 public class CreatePlantResponse : BaseResponse {
-	public int PlantId { get; set; }
+	public string PlantId { get; set; }
 
 	public static class Message {
 		public static readonly ValueObjects.Message

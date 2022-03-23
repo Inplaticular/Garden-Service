@@ -15,15 +15,14 @@ public class PlantService : IPlantService {
 
 	public async Task<CreatePlantResponse> CreatePlantAsync(CreatePlantRequest request) {
 		CreatePlantResponse createPlantResponse;
-		var plant = new Plant(request.FriendlyName, request.BotanicalName, request.DaysToMature, request.GrowthPerDay,
-			request.AvgFruitWeight);
+		var plant = new Plant(request.BotanicalName, request.GradenId);
 
 		try {
 			_gardenContext.Plants.Add(plant);
 			await _gardenContext.SaveChangesAsync();
 			createPlantResponse = new CreatePlantResponse {
 				Succeeded = true,
-				PlantId = plant.PlantId,
+				PlantId = plant.Id,
 				Messages = new[] {CreatePlantResponse.Message.PlantCreationSuccessfully}
 			};
 		}
@@ -43,7 +42,7 @@ public class PlantService : IPlantService {
 	public async Task<DeletePlantResponse> DeletePlantAsync(DeletePlantRequest request) {
 		DeletePlantResponse deletePlantResponse;
 		var plant = new Plant {
-			PlantId = request.PlantId
+			Id = request.PlantId
 		};
 		try {
 			_gardenContext.Plants.Attach(plant);

@@ -1,18 +1,19 @@
 ﻿namespace Inplanticular.Garden_Service.Core.Models;
 
 public class Garden {
-
 	public Garden() {
-		
 	}
-	public Garden(string name, DateTime dateOfCreation) {
+
+	public Garden(string name, string userId, DateTime dateOfCreation) {
+		Id = Guid.NewGuid().ToString();
 		Name = name;
+		UserId = userId;
 		DateOfCreation = dateOfCreation;
 	}
 
-	public string GardenId { get; set; }
+	public string Id { get; set; }
 	public string UserId { get; set; }
 	public string Name { get; set; }
 	public DateTime DateOfCreation { get; set; }
-	public List<Plant> Plants { get; } = new();
+	public ICollection<Plant> Plants { get; }
 }
