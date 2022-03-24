@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Inplanticular.Garden_Service.WebAPI.Controllers;
 
 [ApiController]
-[Route("garden")]
+[Route("v1/gardens")]
 public class GardenController : ControllerBase {
 	private readonly IGardenService _gardenService;
 	private readonly ILogger<GardenController> _logger;

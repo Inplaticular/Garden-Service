@@ -17,8 +17,8 @@ public class IdentityService : IIdentityService {
 
 	public IdentityService(IOptions<GatewayOptions> gatewayOptions,
 		IOptions<IdentityServiceOptions> identityServiceOptions) {
-		this._gatewayOptions = gatewayOptions.Value;
-		this._identityServiceOptions = identityServiceOptions.Value;
+		_gatewayOptions = gatewayOptions.Value;
+		_identityServiceOptions = identityServiceOptions.Value;
 	}
 
 	public async Task<OrganizationalGroup?> CreateOrganizationalGroupAsync(AddOrganizationalGroupRequest request) {
@@ -30,8 +30,8 @@ public class IdentityService : IIdentityService {
 			return null;
 		if (response.Content!.Group is not null)
 			return response.Content.Group;
-		var addResponse = await httpClient.SendPutAsync<AddOrganizationalGroupRequest, AddOrganizationalGroupResponse>(
-			this._gatewayOptions.Routes.AuthorizeGroup,
+		var addResponse = await httpClient.SendPostAsync<AddOrganizationalGroupRequest, AddOrganizationalGroupResponse>(
+			_gatewayOptions.Routes.AuthorizationGroup,
 			request
 		);
 
@@ -43,8 +43,8 @@ public class IdentityService : IIdentityService {
 
 	public async Task<OrganizationalUnit?> CreateOrganizationalUnitAsync(AddOrganizationalUnitRequest request) {
 		using var httpClient = new HttpClient();
-		var addResponse = await httpClient.SendPutAsync<AddOrganizationalUnitRequest, AddOrganizationalUnitResponse>(
-			this._gatewayOptions.Routes.AuthorizeUnit,
+		var addResponse = await httpClient.SendPostAsync<AddOrganizationalUnitRequest, AddOrganizationalUnitResponse>(
+			_gatewayOptions.Routes.AuthorizationUnit,
 			request
 		);
 
@@ -56,9 +56,10 @@ public class IdentityService : IIdentityService {
 
 	public async Task DeleteOrganizationalUnitAsync(RemoveOrganizationalUnitRequest request) {
 		using var httpClient = new HttpClient();
-		var deleteResponse = await httpClient.SendDeleteAsync<RemoveOrganizationalUnitRequest, RemoveOrganizationalUnitResponse>(
-			this._gatewayOptions.Routes.AuthorizeUnit,
-			request
-		);
+		var deleteResponse =
+			await httpClient.SendDeleteAsync<RemoveOrganizationalUnitRequest, RemoveOrganizationalUnitResponse>(
+				_gatewayOptions.Routes.AuthorizationUnit,
+				request
+			);
 	}
 }
