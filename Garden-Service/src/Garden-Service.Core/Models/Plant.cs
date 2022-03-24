@@ -12,6 +12,7 @@ public class Plant {
 
 	public string Id { get; set; }
 	public string GardenId { get; set; }
+	public string UnitId { get; set; }
 
 	//not often changed members
 	public PlantData PlantData { get; set; }

@@ -13,6 +13,8 @@ public class Garden {
 
 	public string Id { get; set; }
 	public string UserId { get; set; }
+
+	public string UnitId { get; set; }
 	public string Name { get; set; }
 	public DateTime DateOfCreation { get; set; }
 	public ICollection<Plant> Plants { get; }
