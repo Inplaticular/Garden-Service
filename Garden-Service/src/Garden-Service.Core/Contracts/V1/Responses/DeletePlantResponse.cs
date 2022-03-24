@@ -15,5 +15,12 @@ public class DeletePlantResponse : BaseResponse {
 				Code = nameof(PlantDeletionError),
 				Description = "The plant wasn't deleted successfully."
 			};
+		
+		public static readonly ValueObjects.Message
+			PlantDeletionErrorIdNotFound = new() {
+				Code = nameof(PlantDeletionErrorIdNotFound),
+				Description =
+					"The passed plant-id didn't retrieve any entry in the database. Please consider checking the id!"
+			};
 	}
 }

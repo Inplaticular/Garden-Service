@@ -1,10 +1,13 @@
 ﻿using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Requests.Authorization.Groups;
 using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Requests.Authorization.Units;
+using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Responses.Authorization.Units;
 using Inplanticular.Garden_Service.Core.Contracts.V1.Requests;
 using Inplanticular.Garden_Service.Core.Contracts.V1.Responses;
 using Inplanticular.Garden_Service.Core.Models;
 using Inplanticular.Garden_Service.Core.Options;
 using Inplanticular.Garden_Service.Core.Services;
+using Inplanticular.Garden_Service.Infrastructure.Extensions;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -12,95 +15,109 @@ namespace Inplanticular.Garden_Service.Infrastructure.Services;
 
 public class GardenService : IGardenService {
 	private readonly GardenContext _gardenContext;
-	private readonly GatewayOptions _gatewayOptions;
-	private readonly IdentityService _identityService;
+	private readonly IPlantService _plantService;
+	private readonly IIdentityService _identityService;
 	private readonly IdentityServiceOptions _identityServiceOptions;
 
-
-	public GardenService(GardenContext gardenContext, IdentityService identityService,
-		IOptions<IdentityServiceOptions> identityServiceOptions) {
-		_gardenContext = gardenContext;
-		_identityService = identityService;
-		_identityServiceOptions = identityServiceOptions.Value;
+	public GardenService(GardenContext gardenContext, IPlantService plantService, IIdentityService identityService, IOptions<IdentityServiceOptions> identityServiceOptions) {
+		this._gardenContext = gardenContext;
+		this._plantService = plantService;
+		this._identityService = identityService;
+		this._identityServiceOptions = identityServiceOptions.Value;
 	}
 
-
 	public async Task<CreateGardenResponse> CreateGardenAsync(CreateGardenRequest request) {
-		CreateGardenResponse createGardenResponse;
 		try {
-			var group = await _identityService.CreateOrganizationalGroupAsync(new AddOrganizationalGroupRequest {
-				Name = _identityServiceOptions.OrganizationalGroupName
+			var group = await this._identityService.CreateOrganizationalGroupAsync(new AddOrganizationalGroupRequest {
+				Name = this._identityServiceOptions.OrganizationalGroupName
 			});
+
+			if (group is null) {
+				return new CreateGardenResponse {
+					Errors = new[] {CreateGardenResponse.Error.MissingOrganizationalGroup}
+				};
+			}
+			
 			var garden = new Garden(request.Name, request.UserId, DateTime.UtcNow);
-			var unit = await _identityService.CreateOrganizationalUnitAsync(new AddOrganizationalUnitRequest {
-				GroupId = group!.Id,
-				Name = "garden_"+ garden.Id,
+			
+			var unit = await this._identityService.CreateOrganizationalUnitAsync(new AddOrganizationalUnitRequest {
+				GroupId = group.Id,
+				Name = "Garden_"+ garden.Id,
 				Type = "Garden"
 			});
-			garden.UnitId = unit!.Id;
-			_gardenContext.Gardens.Add(garden);
-			await _gardenContext.SaveChangesAsync();
-			createGardenResponse = new CreateGardenResponse {
+
+			if (unit is null) {
+				return new CreateGardenResponse {
+					Errors = new[] {CreateGardenResponse.Error.OrganizationalUnitCreationFailed}
+				};
+			}
+			
+			garden.UnitId = unit.Id;
+			this._gardenContext.Gardens.Add(garden);
+			await this._gardenContext.SaveChangesAsync();
+			
+			return new CreateGardenResponse {
 				Succeeded = true,
 				GardenId = garden.Id,
 				Messages = new[] {CreateGardenResponse.Message.GardenCreationSuccessfully}
 			};
 		}
 		catch (Exception e) {
-			if (e is DbUpdateException or DbUpdateConcurrencyException or OperationCanceledException)
-				createGardenResponse = new CreateGardenResponse {
+			if (e is DbUpdateException or DbUpdateConcurrencyException or OperationCanceledException) {
+				return new CreateGardenResponse {
 					Succeeded = false,
 					Errors = new[] {CreateGardenResponse.Error.GardenCreationError}
 				};
-			if (e is NullReferenceException)
-				createGardenResponse = new CreateGardenResponse {
-					Succeeded = false,
-					Errors = new[] {CreateGardenResponse.Error.GardenCreationAuthorizationError}
-				};
-			else
-				throw;
-		}
+			}
 
-		return createGardenResponse;
+			throw;
+		}
 	}
 
 	public async Task<DeleteGardenResponse> DeleteGardenAsync(DeleteGardenRequest request) {
-		DeleteGardenResponse deleteGardenResponse;
-		var garden = await _gardenContext.Gardens.FindAsync(request.GardenId);
-		if (garden is not null)
-			try {
-				_gardenContext.Gardens.Attach(garden);
-				_gardenContext.Gardens.Remove(garden);
-				await _gardenContext.SaveChangesAsync();
-				deleteGardenResponse = new DeleteGardenResponse {
-					Succeeded = true,
-					Messages = new[] {DeleteGardenResponse.Message.GardenDeletionSuccessfully}
+		try {
+			var garden = await this._gardenContext.Gardens.Include(g => g.Plants).SingleOrDefaultAsync(g => g.Id == request.GardenId);
+
+			if (garden is null) {
+				return new DeleteGardenResponse {
+					Succeeded = false,
+					Errors = new[] {DeleteGardenResponse.Error.GardenDeletionErrorIdNotFound}
 				};
 			}
-			catch (Exception e) {
-				if (e is DbUpdateException or DbUpdateConcurrencyException or OperationCanceledException)
-					deleteGardenResponse = new DeleteGardenResponse {
-						Succeeded = false,
-						Errors = new[] {DeleteGardenResponse.Error.GardenDeletionError}
-					};
-				else
-					throw;
-			}
+			
+			var deletePlantTasks = garden.Plants.Select(plant => this._plantService.DeletePlantAsync(new DeletePlantRequest { PlantId = plant.Id })).ToArray();
+			await Task.WhenAll(deletePlantTasks);
+			
+			this._gardenContext.Gardens.Remove(garden);
+			await this._gardenContext.SaveChangesAsync();
 
-		deleteGardenResponse = new DeleteGardenResponse {
-			Succeeded = false,
-			Errors = new[] {DeleteGardenResponse.Error.GardenDeletionErrorIdNotFound}
-		};
-		return deleteGardenResponse;
+			await this._identityService.DeleteOrganizationalUnitAsync(new RemoveOrganizationalUnitRequest {
+				Id = garden.UnitId
+			});
+			
+			return new DeleteGardenResponse {
+				Succeeded = true,
+				Messages = new[] {DeleteGardenResponse.Message.GardenDeletionSuccessfully}
+			};
+		}
+		catch (Exception e) {
+			if (e is DbUpdateException or DbUpdateConcurrencyException or OperationCanceledException)
+				return new DeleteGardenResponse {
+					Succeeded = false,
+					Errors = new[] {DeleteGardenResponse.Error.GardenDeletionError}
+				};
+			
+			throw;
+		}
 	}
 
 	public async Task<EditGardenResponse> EditGardenAsync(EditGardenRequest request) {
 		EditGardenResponse editGardenResponse;
-		var garden = await _gardenContext.Gardens.FindAsync(request.GardenId);
+		var garden = await this._gardenContext.Gardens.FindAsync(request.GardenId);
 		if (garden is not null) {
 			garden.Name = request.Name;
 			try {
-				await _gardenContext.SaveChangesAsync();
+				await this._gardenContext.SaveChangesAsync();
 				editGardenResponse = new EditGardenResponse {
 					Succeeded = true,
 					Messages = new[] {EditGardenResponse.Message.GardenAlterationSuccessfully}
@@ -127,7 +144,7 @@ public class GardenService : IGardenService {
 
 	public async Task<GetGardenResponse> GetGardenAsync(GetGardenRequest request) {
 		GetGardenResponse getGardenResponse;
-		var gardenList = await _gardenContext.Gardens.Where(garden => garden.UserId == request.UserId)
+		var gardenList = await this._gardenContext.Gardens.Where(garden => garden.UserId == request.UserId)
 			.Include(garden => garden.Plants).ToListAsync();
 		try {
 			getGardenResponse = new GetGardenResponse {
@@ -150,7 +167,7 @@ public class GardenService : IGardenService {
 	}
 
 	public async Task<GetSingleGardenResponse> GetSingleGardenAsync(GetSingleGardenRequest request) {
-		var garden = await _gardenContext.Gardens
+		var garden = await this._gardenContext.Gardens
 			.Include(g => g.Plants)
 			.ThenInclude(p => p.PlantData)
 			.SingleOrDefaultAsync(g => g.Id == request.GardenId);

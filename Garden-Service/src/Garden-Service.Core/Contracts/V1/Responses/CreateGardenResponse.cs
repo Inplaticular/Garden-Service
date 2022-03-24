@@ -17,9 +17,13 @@ public class CreateGardenResponse : BaseResponse {
 				Code = nameof(GardenCreationError),
 				Description = "The creation of the garden wasn't successfully."
 			},
-			GardenCreationAuthorizationError = new() {
-				Code = nameof(GardenCreationAuthorizationError),
-				Description = "The creation of the garden wasn't successfully. Authorization failed"
+			MissingOrganizationalGroup = new() {
+				Code = nameof(MissingOrganizationalGroup),
+				Description = "There is no organizational group and the creation of the group failed"
+			},
+			OrganizationalUnitCreationFailed = new() {
+				Code = nameof(OrganizationalUnitCreationFailed),
+				Description = "The creation of the organizational unit failed"
 			};
 	}
 }

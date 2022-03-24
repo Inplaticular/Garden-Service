@@ -8,7 +8,7 @@ public class BaseResponse<TBody> : BaseResponse {
 
 public class BaseResponse {
 	public bool Succeeded { get; set; } = false;
-	public IEnumerable<Message> Messages { get; set; } = Enumerable.Empty<Message>();
-	public IEnumerable<Message> Errors { get; set; } = Enumerable.Empty<Message>();
+	public ICollection<Message> Messages { get; set; } = Array.Empty<Message>();
+	public ICollection<Message> Errors { get; set; } = Array.Empty<Message>();
 	public object? Content { get; set; } = null;
 }

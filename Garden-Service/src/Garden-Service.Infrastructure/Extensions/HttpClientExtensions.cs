@@ -71,7 +71,8 @@ public static class HttpClientExtensions {
 		if (response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.BadRequest)
 			return default;
 
-		var responseBody = JsonConvert.DeserializeObject<TResponse>(await response.Content.ReadAsStringAsync());
+		var content = await response.Content.ReadAsStringAsync();
+		var responseBody = JsonConvert.DeserializeObject<TResponse>(content);
 		return responseBody;
 	}
 }

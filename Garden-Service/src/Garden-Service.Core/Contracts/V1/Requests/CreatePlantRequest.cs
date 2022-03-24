@@ -3,5 +3,5 @@
 public record CreatePlantRequest {
 	public string BotanicalName { get; set; }
 
-	public string GradenId { get; set; }
+	public string GardenId { get; set; }
 }

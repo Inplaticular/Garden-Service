@@ -17,8 +17,8 @@ public class IdentityService : IIdentityService {
 
 	public IdentityService(IOptions<GatewayOptions> gatewayOptions,
 		IOptions<IdentityServiceOptions> identityServiceOptions) {
-		_gatewayOptions = gatewayOptions.Value;
-		_identityServiceOptions = identityServiceOptions.Value;
+		this._gatewayOptions = gatewayOptions.Value;
+		this._identityServiceOptions = identityServiceOptions.Value;
 	}
 
 	public async Task<OrganizationalGroup?> CreateOrganizationalGroupAsync(AddOrganizationalGroupRequest request) {
@@ -31,8 +31,9 @@ public class IdentityService : IIdentityService {
 		if (response.Content!.Group is not null)
 			return response.Content.Group;
 		var addResponse = await httpClient.SendPutAsync<AddOrganizationalGroupRequest, AddOrganizationalGroupResponse>(
-			_gatewayOptions.Routes.AuthorizeGroup,
-			request);
+			this._gatewayOptions.Routes.AuthorizeGroup,
+			request
+		);
 
 		if (addResponse is not null && addResponse.Succeeded)
 			return addResponse.Content!.Group;
@@ -43,12 +44,21 @@ public class IdentityService : IIdentityService {
 	public async Task<OrganizationalUnit?> CreateOrganizationalUnitAsync(AddOrganizationalUnitRequest request) {
 		using var httpClient = new HttpClient();
 		var addResponse = await httpClient.SendPutAsync<AddOrganizationalUnitRequest, AddOrganizationalUnitResponse>(
-			_gatewayOptions.Routes.AuthorizeUnit,
-			request);
+			this._gatewayOptions.Routes.AuthorizeUnit,
+			request
+		);
 
 		if (addResponse is not null && addResponse.Succeeded)
 			return addResponse.Content!.Unit;
 
 		return null;
+	}
+
+	public async Task DeleteOrganizationalUnitAsync(RemoveOrganizationalUnitRequest request) {
+		using var httpClient = new HttpClient();
+		var deleteResponse = await httpClient.SendDeleteAsync<RemoveOrganizationalUnitRequest, RemoveOrganizationalUnitResponse>(
+			this._gatewayOptions.Routes.AuthorizeUnit,
+			request
+		);
 	}
 }
