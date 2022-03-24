@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Inplanticular.Garden_Service.WebAPI.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("plant")]
 public class PlantController : ControllerBase {
 	private readonly ILogger<PlantController> _logger;
 	private readonly IPlantService _plantService;
@@ -17,7 +17,7 @@ public class PlantController : ControllerBase {
 		_logger = logger;
 	}
 
-	[HttpPost(Name = "create_plant")]
+	[HttpPost]
 	public async Task<IActionResult> CreatePlant(CreatePlantRequest request) {
 		try {
 			var createPlantResponse = await _plantService.CreatePlantAsync(request);
@@ -29,7 +29,7 @@ public class PlantController : ControllerBase {
 		}
 	}
 
-	[HttpDelete(Name = "delete_plant")]
+	[HttpDelete]
 	public async Task<IActionResult> DeletePlant(DeletePlantRequest request) {
 		try {
 			var deletePlantResponse = await _plantService.DeletePlantAsync(request);

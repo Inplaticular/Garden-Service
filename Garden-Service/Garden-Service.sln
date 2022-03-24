@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B3F33DC7-87BA-49A6-8A4B-9A02C65DECEE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{B3F33DC7-87BA-49A6-8A4B-9A02C65DECEE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Garden-Service.Core", "src\Garden-Service.Core\Garden-Service.Core.csproj", "{22C233BA-ECF5-41F7-871D-03C9BC76298D}"
 EndProject
