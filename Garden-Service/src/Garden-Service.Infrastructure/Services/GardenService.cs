@@ -1,23 +1,43 @@
-﻿using Inplanticular.Garden_Service.Core.Contracts.V1.Requests;
+﻿using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Requests.Authorization.Groups;
+using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Requests.Authorization.Units;
+using Inplanticular.Garden_Service.Core.Contracts.V1.Requests;
 using Inplanticular.Garden_Service.Core.Contracts.V1.Responses;
 using Inplanticular.Garden_Service.Core.Models;
+using Inplanticular.Garden_Service.Core.Options;
 using Inplanticular.Garden_Service.Core.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Inplanticular.Garden_Service.Infrastructure.Services;
 
 public class GardenService : IGardenService {
 	private readonly GardenContext _gardenContext;
+	private readonly GatewayOptions _gatewayOptions;
+	private readonly IdentityService _identityService;
+	private readonly IdentityServiceOptions _identityServiceOptions;
 
-	public GardenService(GardenContext gardenContext) {
+
+	public GardenService(GardenContext gardenContext, IdentityService identityService,
+		IOptions<IdentityServiceOptions> identityServiceOptions) {
 		_gardenContext = gardenContext;
+		_identityService = identityService;
+		_identityServiceOptions = identityServiceOptions.Value;
 	}
 
 
 	public async Task<CreateGardenResponse> CreateGardenAsync(CreateGardenRequest request) {
 		CreateGardenResponse createGardenResponse;
-		var garden = new Garden(request.Name, request.UserId, DateTime.UtcNow);
 		try {
+			var group = await _identityService.CreateOrganizationalGroupAsync(new AddOrganizationalGroupRequest {
+				Name = _identityServiceOptions.OrganizationalGroupName
+			});
+			var garden = new Garden(request.Name, request.UserId, DateTime.UtcNow);
+			var unit = await _identityService.CreateOrganizationalUnitAsync(new AddOrganizationalUnitRequest {
+				GroupId = group!.Id,
+				Name = "garden_"+ garden.Id,
+				Type = "Garden"
+			});
+			garden.UnitId = unit!.Id;
 			_gardenContext.Gardens.Add(garden);
 			await _gardenContext.SaveChangesAsync();
 			createGardenResponse = new CreateGardenResponse {
@@ -31,6 +51,11 @@ public class GardenService : IGardenService {
 				createGardenResponse = new CreateGardenResponse {
 					Succeeded = false,
 					Errors = new[] {CreateGardenResponse.Error.GardenCreationError}
+				};
+			if (e is NullReferenceException)
+				createGardenResponse = new CreateGardenResponse {
+					Succeeded = false,
+					Errors = new[] {CreateGardenResponse.Error.GardenCreationAuthorizationError}
 				};
 			else
 				throw;

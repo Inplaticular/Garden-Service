@@ -1,4 +1,5 @@
 ﻿using Inplanticular.Garden_Service.Core.Models;
+using Inplanticular.Garden_Service.Core.Options;
 using Inplanticular.Garden_Service.Core.Services;
 using Inplanticular.Garden_Service.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,9 @@ public class Startup {
 
 
 	public void ConfigureServices(IServiceCollection services) {
+		services.Configure<GatewayOptions>(this.Configuration.GetSection(GatewayOptions.AppSettingsKey));
+		services.Configure<IdentityServiceOptions>(this.Configuration.GetSection(IdentityServiceOptions.AppSettingsKey));
+
 		services.AddDbContext<GardenContext>(options =>
 			options.UseNpgsql(Configuration.GetConnectionString("postgres"),
 				b => b.MigrationsAssembly("Inplanticular.Garden-Service.WebAPI"))

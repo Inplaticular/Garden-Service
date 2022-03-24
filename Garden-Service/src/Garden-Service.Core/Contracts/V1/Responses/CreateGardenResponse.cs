@@ -16,6 +16,10 @@ public class CreateGardenResponse : BaseResponse {
 			GardenCreationError = new() {
 				Code = nameof(GardenCreationError),
 				Description = "The creation of the garden wasn't successfully."
+			},
+			GardenCreationAuthorizationError = new() {
+				Code = nameof(GardenCreationAuthorizationError),
+				Description = "The creation of the garden wasn't successfully. Authorization failed"
 			};
 	}
 }
