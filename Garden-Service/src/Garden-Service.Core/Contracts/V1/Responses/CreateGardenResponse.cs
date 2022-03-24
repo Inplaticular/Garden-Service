@@ -24,6 +24,10 @@ public class CreateGardenResponse : BaseResponse {
 			OrganizationalUnitCreationFailed = new() {
 				Code = nameof(OrganizationalUnitCreationFailed),
 				Description = "The creation of the organizational unit failed"
+			},
+			PermissionOfGardenCreationFailed = new() {
+				Code = nameof(OrganizationalUnitCreationFailed),
+				Description = "The creation of the organizational unit failed"
 			};
 	}
 }
