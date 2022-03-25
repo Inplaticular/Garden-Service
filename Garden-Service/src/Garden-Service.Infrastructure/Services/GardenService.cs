@@ -55,7 +55,8 @@ public class GardenService : IGardenService {
 					Errors = new[] {CreateGardenResponse.Error.MissingOrganizationalGroup}
 				};
 
-			var garden = new Garden(request.Name, request.UserId, DateTime.UtcNow);
+			var garden = new Garden(request.Name, request.UserId, request.CoordinateLatitude,
+				request.CoordinateLongitude, DateTime.UtcNow);
 
 			var unit = await _identityService.CreateOrganizationalUnitAsync(new AddOrganizationalUnitRequest {
 				GroupId = group.Id,
