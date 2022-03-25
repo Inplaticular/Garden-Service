@@ -50,4 +50,17 @@ public class PlantController : ControllerBase {
 			return this.ErrorResponse<DeletePlantResponse>(e);
 		}
 	}
+
+	[HttpGet]
+	[Route("plant_data")]
+	public async Task<IActionResult> GetPlantDataAsync() {
+		try {
+			var getPlantDataResponse = await _plantService.GetPlantDataAsync();
+			return Ok(getPlantDataResponse);
+		}
+		catch (Exception e) {
+			_logger.LogError(e, $"{nameof(GetPlantDataAsync)} threw an exception");
+			return this.ErrorResponse<GetPlantDataResponse>(e);
+		}
+	}
 }

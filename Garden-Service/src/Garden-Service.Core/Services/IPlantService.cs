@@ -7,4 +7,6 @@ public interface IPlantService {
 	Task<CreatePlantResponse> CreatePlantAsync(CreatePlantRequest request);
 
 	Task<DeletePlantResponse> DeletePlantAsync(DeletePlantRequest request);
+
+	Task<GetPlantDataResponse> GetPlantDataAsync();
 }
