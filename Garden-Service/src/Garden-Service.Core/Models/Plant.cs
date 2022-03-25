@@ -10,6 +10,7 @@ public class Plant {
 		GardenId = gardenId;
 	}
 
+	public Garden Garden { get; set; }
 	public string Id { get; set; }
 	public string GardenId { get; set; }
 	public string UnitId { get; set; }

@@ -19,6 +19,11 @@ public class DeletePermissionForGardenResponse : BaseResponse {
 				Code = nameof(DeletePermissionForGardenErrorBadRequest),
 				Description =
 					"The deletion of the permission for the garden wasn't successfully. Your request did not contain the right type or value attribute. Consider checking both!"
-			};
+			},
+		DeletePermissionForGardenErrorIdMismatch = new() {
+			Code = nameof(DeletePermissionForGardenErrorBadRequest),
+			Description =
+				"The deletion of the permission for the garden wasn't successfully. Your permissionId did not belong to the passed unitId. Consider checking both!"
+		};
 	}
 }
