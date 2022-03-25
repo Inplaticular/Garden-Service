@@ -5,6 +5,7 @@ using Inplanticular.Garden_Service.Core.Contracts.V1.Requests;
 using Inplanticular.Garden_Service.Core.Contracts.V1.Responses;
 using Inplanticular.Garden_Service.Core.Enums;
 using Inplanticular.Garden_Service.Core.Exceptions;
+using Inplanticular.Garden_Service.Core.Models;
 using Inplanticular.Garden_Service.Core.Options;
 using Inplanticular.Garden_Service.Core.Services;
 using Inplanticular.Garden_Service.Infrastructure.Extensions;
@@ -15,12 +16,15 @@ using Microsoft.Net.Http.Headers;
 namespace Inplanticular.Garden_Service.Infrastructure.Services;
 
 public class GardenPermissionManagementService : IGardenPermissionManagementService {
+	private readonly GardenContext _gardenContext;
 	private readonly GatewayOptions _gatewayOptions;
 	private readonly IHttpContextAccessor _httpContextAccessor;
 	private readonly IIdentityService _identityService;
 
-	public GardenPermissionManagementService(IOptions<GatewayOptions> gatewayOptions, IIdentityService identityService,
+	public GardenPermissionManagementService(GardenContext gardenContext, IOptions<GatewayOptions> gatewayOptions,
+		IIdentityService identityService,
 		IHttpContextAccessor httpContextAccessor) {
+		_gardenContext = gardenContext;
 		_identityService = identityService;
 		_httpContextAccessor = httpContextAccessor;
 		_gatewayOptions = gatewayOptions.Value;
@@ -36,14 +40,21 @@ public class GardenPermissionManagementService : IGardenPermissionManagementServ
 
 	public async Task<GetAssignedPermissionsForGardenResponse> GetPermissionsForGardenAsync(
 		GetAssignedPermissionsForGardenRequest request) {
+		var garden = await _gardenContext.Gardens.FindAsync(request.GardenId);
+		if (garden is null)
+			return new GetAssignedPermissionsForGardenResponse {
+				Succeeded = false,
+				Errors = new[] {GetAssignedPermissionsForGardenResponse.Error.AssignedPermissionsReturnError}
+			};
 		if (!await _identityService.CheckUserHasAnyRole(
-			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], request.UnitId, new[] {
+			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], garden.UnitId, new[] {
 				    GardenRoles.Owner
 			    }))
 			throw new UnauthorizedException();
 		using var httpClient = new HttpClient();
 		var response = await httpClient.SendGetAsync<GetUserClaimsForOrganizationalUnitResponse>(
-			string.Format("{0}?UnitId={1}", _gatewayOptions.Routes.InformationAuthorizationUserClaims, request.UnitId));
+			string.Format("{0}?UnitId={1}", _gatewayOptions.Routes.InformationAuthorizationUserClaims,
+				garden.UnitId));
 
 		if (response is null || response.Succeeded is false) {
 			if (response != null)
@@ -71,8 +82,14 @@ public class GardenPermissionManagementService : IGardenPermissionManagementServ
 
 	public async Task<CreatePermissionForGardenResponse> CreatePermissionForGardenAsync(
 		CreatePermissionForGardenRequest request) {
+		var garden = await _gardenContext.Gardens.FindAsync(request.GardenId);
+		if (garden is null)
+			return new CreatePermissionForGardenResponse {
+				Succeeded = false,
+				Errors = new[] {CreatePermissionForGardenResponse.Error.CreatePermissionForGardenError}
+			};
 		if (!await _identityService.CheckUserHasAnyRole(
-			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], request.UnitId, new[] {
+			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], garden.UnitId, new[] {
 				    GardenRoles.Owner
 			    }))
 			throw new UnauthorizedException();
@@ -118,13 +135,20 @@ public class GardenPermissionManagementService : IGardenPermissionManagementServ
 
 	public async Task<DeletePermissionForGardenResponse> DeletePermissionForGardenAsync(
 		DeletePermissionForGardenRequest request) {
-		if (!await _identityService.CheckPermissionBelongsToUnit(request.PermissionId, request.UnitId))
+		var garden = await _gardenContext.Gardens.FindAsync(request.GardenId);
+		if (garden is null) {
+			return new DeletePermissionForGardenResponse {
+				Succeeded = false,
+				Errors = new[] {DeletePermissionForGardenResponse.Error.DeletePermissionForGardenError}
+			};
+		}
+		if (!await _identityService.CheckPermissionBelongsToUnit(request.PermissionId, garden.UnitId))
 			return new DeletePermissionForGardenResponse {
 				Succeeded = false,
 				Errors = new[] {DeletePermissionForGardenResponse.Error.DeletePermissionForGardenErrorIdMismatch}
 			};
 		if (!await _identityService.CheckUserHasAnyRole(
-			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], request.UnitId, new[] {
+			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], garden.UnitId, new[] {
 				    GardenRoles.Owner
 			    }))
 			throw new UnauthorizedException();
