@@ -1,8 +1,10 @@
-﻿using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Requests.Authorization.Groups;
+﻿using System.IdentityModel.Tokens.Jwt;
+using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Requests.Authorization.Groups;
 using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Requests.Authorization.Units;
 using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Responses.Authorization.Groups;
 using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Responses.Authorization.Units;
 using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Responses.Information;
+using Inplanticular.Garden_Service.Core.Enums;
 using Inplanticular.Garden_Service.Core.Models.External;
 using Inplanticular.Garden_Service.Core.Options;
 using Inplanticular.Garden_Service.Core.Services;
@@ -61,5 +63,41 @@ public class IdentityService : IIdentityService {
 				_gatewayOptions.Routes.AuthorizationUnit,
 				request
 			);
+	}
+
+	public bool CheckUserHasId(string token, string userId) {
+		var uid = GetUserIdFromToken(token);
+		return uid is not null && uid == userId;
+	}
+
+	public async Task<bool> CheckUserHasAnyRole(string token, string unitId,
+		IEnumerable<GardenRoles> gardenRoles) {
+		var userId = GetUserIdFromToken(token);
+		if (userId is null) return false;
+		using var httpClient = new HttpClient();
+		var response = await httpClient.SendGetAsync<GetUserClaimsForOrganizationalUnitResponse>(
+			string.Format("{0}?UnitId={1}", _gatewayOptions.Routes.InformationAuthorizationUserClaims, unitId));
+		if (response is null || !response.Succeeded)
+			return false;
+
+		return response.Content!.UserClaims.Any(claim =>
+			claim.UserId.Equals(userId) && claim.Type.Equals(UserClaimTypes.Role.ToString()) &&
+			gardenRoles.Select(r => r.ToString()).ToList().Contains(claim.Value));
+	}
+
+	public async Task<bool> CheckPermissionBelongsToUnit(string permissionId, string unitId) {
+		using var httpClient = new HttpClient();
+		var response = await httpClient.SendGetAsync<GetUserClaimsForOrganizationalUnitResponse>(
+			string.Format("{0}?UnitId={1}", _gatewayOptions.Routes.InformationAuthorizationUserClaims, unitId));
+		if (response is null || !response.Succeeded)
+			return false;
+
+		return response.Content!.UserClaims.Any(claim => claim.Id.Equals(permissionId));
+	}
+
+	private string? GetUserIdFromToken(string token) {
+		var securityToken = new JwtSecurityTokenHandler().ReadToken(token);
+		if (securityToken is not JwtSecurityToken jwtSecurityToken) return null;
+		return jwtSecurityToken.Claims.FirstOrDefault(claim => claim.Type.Equals(JwtRegisteredClaimNames.Sub))?.Value;
 	}
 }

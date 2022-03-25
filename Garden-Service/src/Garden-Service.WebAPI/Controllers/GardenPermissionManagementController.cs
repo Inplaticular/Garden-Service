@@ -1,7 +1,9 @@
 ﻿using Inplanticular.Garden_Service.Core.Contracts.V1.Requests;
 using Inplanticular.Garden_Service.Core.Contracts.V1.Responses;
+using Inplanticular.Garden_Service.Core.Exceptions;
 using Inplanticular.Garden_Service.Core.Services;
 using Inplanticular.Garden_Service.WebAPI.Extensions;
+using Inplanticular.Garden_Service.WebAPI.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inplanticular.Garden_Service.WebAPI.Controllers;
@@ -32,12 +34,16 @@ public class GardenPermissionManagementController : ControllerBase {
 	}
 
 	[HttpGet]
+	[UserAuthorized]
 	public async Task<IActionResult> GetPermissionsForGardenAsync(
 		[FromQuery] GetAssignedPermissionsForGardenRequest request) {
 		try {
 			var getAssignedPermissionsForGardenResponse =
 				await _gardenPermissionManagementService.GetPermissionsForGardenAsync(request);
 			return Ok(getAssignedPermissionsForGardenResponse);
+		}
+		catch (UnauthorizedException) {
+			return Unauthorized();
 		}
 		catch (Exception e) {
 			_logger.LogError(e, $"{nameof(GetPermissionsForGardenAsync)} threw an exception");
@@ -46,23 +52,32 @@ public class GardenPermissionManagementController : ControllerBase {
 	}
 
 	[HttpPost]
+	[UserAuthorized]
 	public async Task<IActionResult> CreatePermissionForGardenAsync(CreatePermissionForGardenRequest request) {
 		try {
 			var createPermissionForGardenResponse =
 				await _gardenPermissionManagementService.CreatePermissionForGardenAsync(request);
 			return Ok(createPermissionForGardenResponse);
 		}
+		catch (UnauthorizedException) {
+			return Unauthorized();
+		}
 		catch (Exception e) {
 			_logger.LogError(e, $"{nameof(GetPermissionsForGardenAsync)} threw an exception");
 			return this.ErrorResponse<CreatePermissionForGardenResponse>(e);
 		}
 	}
+
 	[HttpDelete]
+	[UserAuthorized]
 	public async Task<IActionResult> DeletePermissionForGardenAsync(DeletePermissionForGardenRequest request) {
 		try {
 			var deletePermissionForGardenResponse =
 				await _gardenPermissionManagementService.DeletePermissionForGardenAsync(request);
 			return Ok(deletePermissionForGardenResponse);
+		}
+		catch (UnauthorizedException) {
+			return Unauthorized();
 		}
 		catch (Exception e) {
 			_logger.LogError(e, $"{nameof(DeletePermissionForGardenAsync)} threw an exception");

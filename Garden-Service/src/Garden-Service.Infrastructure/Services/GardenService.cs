@@ -4,35 +4,48 @@ using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Re
 using Inplanticular.Garden_Service.Core.Contracts.V1.Requests;
 using Inplanticular.Garden_Service.Core.Contracts.V1.Responses;
 using Inplanticular.Garden_Service.Core.Enums;
+using Inplanticular.Garden_Service.Core.Exceptions;
 using Inplanticular.Garden_Service.Core.Models;
 using Inplanticular.Garden_Service.Core.Options;
 using Inplanticular.Garden_Service.Core.Services;
 using Inplanticular.Garden_Service.Infrastructure.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 
 namespace Inplanticular.Garden_Service.Infrastructure.Services;
 
 public class GardenService : IGardenService {
 	private readonly GardenContext _gardenContext;
 	private readonly GatewayOptions _gatewayOptions;
+	private readonly IHttpContextAccessor _httpContextAccessor;
 	private readonly IIdentityService _identityService;
 	private readonly IdentityServiceOptions _identityServiceOptions;
+	private readonly ILogger<GardenService> _logger;
 	private readonly IPlantService _plantService;
 
 
 	public GardenService(GardenContext gardenContext, IPlantService plantService, IIdentityService identityService,
-		IOptions<IdentityServiceOptions> identityServiceOptions, IOptions<GatewayOptions> gatewayOptions) {
+		IOptions<IdentityServiceOptions> identityServiceOptions, IOptions<GatewayOptions> gatewayOptions,
+		IHttpContextAccessor httpContextAccessor, ILogger<GardenService> logger) {
 		_gardenContext = gardenContext;
 		_plantService = plantService;
 		_identityService = identityService;
+		_httpContextAccessor = httpContextAccessor;
+		_logger = logger;
 		_identityServiceOptions = identityServiceOptions.Value;
 		_gatewayOptions = gatewayOptions.Value;
 	}
 
 	public async Task<CreateGardenResponse> CreateGardenAsync(CreateGardenRequest request) {
-		using var httpClient = new HttpClient();
 		try {
+			if (!_identityService.CheckUserHasId(
+				    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization],
+				    request.UserId))
+				throw new UnauthorizedException();
+
 			var group = await _identityService.CreateOrganizationalGroupAsync(new AddOrganizationalGroupRequest {
 				Name = _identityServiceOptions.OrganizationalGroupName
 			});
@@ -59,9 +72,10 @@ public class GardenService : IGardenService {
 			var createPermissionForGardenRequest = new AddOrganizationalUnitUserClaimRequest {
 				UnitId = garden.UnitId,
 				UserId = garden.UserId,
-				Type = "Role",
+				Type = UserClaimTypes.Role.ToString(),
 				Value = GardenRoles.Owner.ToString()
 			};
+			using var httpClient = new HttpClient();
 			var response =
 				await httpClient
 					.SendPostAsync<AddOrganizationalUnitUserClaimRequest, AddOrganizationalUnitUserClaimResponse>(
@@ -111,7 +125,11 @@ public class GardenService : IGardenService {
 					Succeeded = false,
 					Errors = new[] {DeleteGardenResponse.Error.GardenDeletionErrorIdNotFound}
 				};
-
+			if (!await _identityService.CheckUserHasAnyRole(
+				    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], garden.UnitId, new[] {
+					    GardenRoles.Owner
+				    }))
+				throw new UnauthorizedException();
 			var deletePlantTasks = garden.Plants
 				.Select(plant => _plantService.DeletePlantAsync(new DeletePlantRequest {PlantId = plant.Id})).ToArray();
 			await Task.WhenAll(deletePlantTasks);
@@ -143,6 +161,11 @@ public class GardenService : IGardenService {
 		EditGardenResponse editGardenResponse;
 		var garden = await _gardenContext.Gardens.FindAsync(request.GardenId);
 		if (garden is not null) {
+			if (!await _identityService.CheckUserHasAnyRole(
+				    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], garden.UnitId, new[] {
+					    GardenRoles.Owner, GardenRoles.Collaborator
+				    }))
+				throw new UnauthorizedException();
 			garden.Name = request.Name;
 			try {
 				await _gardenContext.SaveChangesAsync();
@@ -171,7 +194,13 @@ public class GardenService : IGardenService {
 	}
 
 	public async Task<GetGardenResponse> GetGardenAsync(GetGardenRequest request) {
+		if (!_identityService.CheckUserHasId(
+			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization],
+			    request.UserId))
+			throw new UnauthorizedException();
+
 		GetGardenResponse getGardenResponse;
+
 		var gardenList = await _gardenContext.Gardens.Where(garden => garden.UserId == request.UserId)
 			.Include(garden => garden.Plants).ToListAsync();
 		try {
@@ -202,6 +231,12 @@ public class GardenService : IGardenService {
 		GetSingleGardenResponse getSingleGardenResponse;
 		if (garden is not null)
 			try {
+				if (!await _identityService.CheckUserHasAnyRole(
+					    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], garden.UnitId,
+					    new[] {
+						    GardenRoles.Owner, GardenRoles.Collaborator, GardenRoles.Visitor
+					    }))
+					throw new UnauthorizedException();
 				getSingleGardenResponse = new GetSingleGardenResponse {
 					Garden = garden,
 					Succeeded = true,
