@@ -9,7 +9,7 @@ public class GetGardenResponse : BaseResponse {
 		public static readonly ValueObjects.Message
 			GardenReturnSuccessfully = new() {
 				Code = nameof(GardenReturnSuccessfully),
-				Description = "The gardens was returned successfully."
+				Description = "The gardens were returned successfully."
 			};
 	}
 

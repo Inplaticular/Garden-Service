@@ -3,6 +3,7 @@ using Inplanticular.Garden_Service.Core.Options;
 using Inplanticular.Garden_Service.Core.Services;
 using Inplanticular.Garden_Service.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Inplanticular.Garden_Service.WebAPI;
 
@@ -15,17 +16,18 @@ public class Startup {
 
 
 	public void ConfigureServices(IServiceCollection services) {
-		services.Configure<GatewayOptions>(this.Configuration.GetSection(GatewayOptions.AppSettingsKey));
-		services.Configure<IdentityServiceOptions>(this.Configuration.GetSection(IdentityServiceOptions.AppSettingsKey));
+		services.Configure<GatewayOptions>(Configuration.GetSection(GatewayOptions.AppSettingsKey));
+		services.Configure<IdentityServiceOptions>(Configuration.GetSection(IdentityServiceOptions.AppSettingsKey));
 
 		services.AddDbContext<GardenContext>(options =>
 			options.UseNpgsql(Configuration.GetConnectionString("postgres"),
 				b => b.MigrationsAssembly("Inplanticular.Garden-Service.WebAPI"))
 		);
-
+		services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 		services.AddScoped<IPlantService, PlantService>();
 		services.AddScoped<IGardenService, GardenService>();
 		services.AddScoped<IIdentityService, IdentityService>();
+		services.AddScoped<IGardenPermissionManagementService, GardenPermissionManagementService>();
 
 		services.AddControllers();
 		services.AddEndpointsApiExplorer();
@@ -38,6 +40,7 @@ public class Startup {
 			applicationBuilder.UseSwagger();
 			applicationBuilder.UseSwaggerUI();
 		}
+
 		AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 		applicationBuilder.UseHttpsRedirection();
 

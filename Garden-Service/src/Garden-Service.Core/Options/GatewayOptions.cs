@@ -9,7 +9,9 @@ public class Routes {
 	public string AuthorizeUser { get; set; }
 	public string AuthorizeUserClaim { get; set; }
 	public string InformationAuthorizationGroup { get; set; }
-	public string AuthorizeGroup { get; set; }
-	public string AuthorizeUnit { get; set; }
-	public string AuthorizeUnitUserClaim { get; set; }
+	
+	public string InformationAuthorizationUserClaims { get; set; }
+	public string AuthorizationGroup { get; set; }
+	public string AuthorizationUnit { get; set; }
+	public string AuthorizationUnitUserClaim { get; set; }
 }

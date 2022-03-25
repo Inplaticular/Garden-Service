@@ -19,7 +19,7 @@ public class GardenContext : DbContext {
 		modelBuilder.Entity<Plant>(entity => {
 			entity.HasKey(plant => plant.Id);
 
-			entity.HasOne<Garden>()
+			entity.HasOne(plant => plant.Garden)
 				.WithMany(garden => garden.Plants)
 				.HasForeignKey(plant => plant.GardenId);
 
