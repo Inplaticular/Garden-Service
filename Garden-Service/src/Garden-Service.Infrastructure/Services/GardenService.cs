@@ -238,6 +238,13 @@ public class GardenService : IGardenService {
 						    GardenRoles.Owner, GardenRoles.Collaborator, GardenRoles.Visitor
 					    }))
 					throw new UnauthorizedException();
+				
+				/*// remove circular reference garden -> plant -> garden -> ...
+				garden.Plants = garden.Plants.Select(plant => {
+					plant.Garden = null!;
+					return plant;
+				}).ToList();*/
+				
 				getSingleGardenResponse = new GetSingleGardenResponse {
 					Garden = garden,
 					Succeeded = true,

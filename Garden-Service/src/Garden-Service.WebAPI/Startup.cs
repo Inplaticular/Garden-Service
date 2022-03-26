@@ -5,6 +5,8 @@ using Inplanticular.Garden_Service.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
+using Newtonsoft.Json;
+
 namespace Inplanticular.Garden_Service.WebAPI;
 
 public class Startup {
@@ -29,7 +31,7 @@ public class Startup {
 		services.AddScoped<IIdentityService, IdentityService>();
 		services.AddScoped<IGardenPermissionManagementService, GardenPermissionManagementService>();
 
-		services.AddControllers();
+		services.AddControllers().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 		services.AddEndpointsApiExplorer();
 		services.AddSwaggerGen();
 	}
@@ -43,6 +45,8 @@ public class Startup {
 
 		AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 		applicationBuilder.UseHttpsRedirection();
+
+		applicationBuilder.UseCors(policyBuilder => policyBuilder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin());
 
 		applicationBuilder.UseAuthorization();
 

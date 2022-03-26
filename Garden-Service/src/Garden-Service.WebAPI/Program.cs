@@ -1,6 +1,8 @@
 using Inplanticular.Garden_Service.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
+using Newtonsoft.Json;
+
 namespace Inplanticular.Garden_Service.WebAPI;
 
 public class Program {
@@ -26,9 +28,10 @@ public class Program {
 	}
 
 	private static async Task CreateInitialPlantData(GardenContext gardenContext) {
-		var plantData = new List<PlantData> {
-			new("Solanum lycopersicum San Marzano", "San Marzano Tomate", 120, 1, 500)
-		};
+		var plantData = JsonConvert.DeserializeObject<PlantData[]>(
+			await File.ReadAllTextAsync(Path.Join(Directory.GetCurrentDirectory(), "plantdata.json"))
+		);
+		
 		foreach (var plant in plantData)
 			try {
 				gardenContext.PlantData.Add(plant);

@@ -21,5 +21,5 @@ public class Garden {
 	public double CoordinateLatitude { get; set; }
 	public double CoordinateLongitude { get; set; }
 	public DateTime DateOfCreation { get; set; }
-	public ICollection<Plant> Plants { get; }
+	public ICollection<Plant> Plants { get; set; }
 }
