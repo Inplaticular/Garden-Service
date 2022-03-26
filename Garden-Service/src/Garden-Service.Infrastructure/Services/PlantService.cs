@@ -16,62 +16,60 @@ namespace Inplanticular.Garden_Service.Infrastructure.Services;
 
 public class PlantService : IPlantService {
 	private readonly GardenContext _gardenContext;
-	private readonly IIdentityService _identityService;
 	private readonly IHttpContextAccessor _httpContextAccessor;
+	private readonly IIdentityService _identityService;
 	private readonly IdentityServiceOptions _identityServiceOptions;
 
-	public PlantService(GardenContext gardenContext, IIdentityService identityService, IOptions<IdentityServiceOptions> identityServiceOptions, IHttpContextAccessor httpContextAccessor) {
-		this._gardenContext = gardenContext;
-		this._identityService = identityService;
+	public PlantService(GardenContext gardenContext, IIdentityService identityService,
+		IOptions<IdentityServiceOptions> identityServiceOptions, IHttpContextAccessor httpContextAccessor) {
+		_gardenContext = gardenContext;
+		_identityService = identityService;
 		_httpContextAccessor = httpContextAccessor;
-		this._identityServiceOptions = identityServiceOptions.Value;
+		_identityServiceOptions = identityServiceOptions.Value;
 	}
 
 	public async Task<CreatePlantResponse> CreatePlantAsync(CreatePlantRequest request) {
 		try {
 			var garden = await _gardenContext.FindAsync<Garden>(request.GardenId);
-			if (garden is null) {
+			if (garden is null)
 				return new CreatePlantResponse {
 					Errors = new[] {
 						CreatePlantResponse.Error.PlantCreationError
 					}
 				};
-			}
 
 			if (!await _identityService.CheckUserHasAnyRole(
 				    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], garden.UnitId, new[] {
-					    GardenRoles.Owner,GardenRoles.Collaborator
+					    GardenRoles.Owner, GardenRoles.Collaborator
 				    }))
 				throw new UnauthorizedException();
-			
-			var group = await this._identityService.CreateOrganizationalGroupAsync(new AddOrganizationalGroupRequest {
-				Name = this._identityServiceOptions.OrganizationalGroupName
+
+			var group = await _identityService.CreateOrganizationalGroupAsync(new AddOrganizationalGroupRequest {
+				Name = _identityServiceOptions.OrganizationalGroupName
 			});
 
-			if (group is null) {
+			if (group is null)
 				return new CreatePlantResponse {
 					Errors = new[] {CreatePlantResponse.Error.MissingOrganizationalGroup}
 				};
-			}
-		
+
 			var plant = new Plant(request.BotanicalName, request.GardenId);
-		
-			var unit = await this._identityService.CreateOrganizationalUnitAsync(new AddOrganizationalUnitRequest {
+
+			var unit = await _identityService.CreateOrganizationalUnitAsync(new AddOrganizationalUnitRequest {
 				GroupId = group.Id,
-				Name = "Plant_"+ plant.Id,
+				Name = "Plant_" + plant.Id,
 				Type = "Plant"
 			});
 
-			if (unit is null) {
+			if (unit is null)
 				return new CreatePlantResponse {
 					Errors = new[] {CreatePlantResponse.Error.OrganizationalUnitCreationFailed}
 				};
-			}
 
 			plant.UnitId = unit.Id;
-			this._gardenContext.Plants.Add(plant);
-			await this._gardenContext.SaveChangesAsync();
-			
+			_gardenContext.Plants.Add(plant);
+			await _gardenContext.SaveChangesAsync();
+
 			return new CreatePlantResponse {
 				Succeeded = true,
 				PlantId = plant.Id,
@@ -84,31 +82,32 @@ public class PlantService : IPlantService {
 					Succeeded = false,
 					Errors = new[] {CreatePlantResponse.Error.PlantCreationError}
 				};
-			
+
 			throw;
 		}
 	}
 
 	public async Task<DeletePlantResponse> DeletePlantAsync(DeletePlantRequest request) {
 		try {
-			var plant = await this._gardenContext.Plants.Include(p => p.Garden).SingleOrDefaultAsync(p => p.Id == request.PlantId);
+			var plant = await _gardenContext.Plants.Include(p => p.Garden)
+				.SingleOrDefaultAsync(p => p.Id == request.PlantId);
 
-			if (plant is null) {
+			if (plant is null)
 				return new DeletePlantResponse {
 					Errors = new[] {DeletePlantResponse.Error.PlantDeletionErrorIdNotFound}
 				};
-			}
 			if (!await _identityService.CheckUserHasAnyRole(
-				    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId, new[] {
-				GardenRoles.Owner,GardenRoles.Collaborator
-			}))
-			throw new UnauthorizedException();
-			this._gardenContext.Plants.Remove(plant);
-			await this._gardenContext.SaveChangesAsync();
-			await this._identityService.DeleteOrganizationalUnitAsync(new RemoveOrganizationalUnitRequest {
+				    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId,
+				    new[] {
+					    GardenRoles.Owner, GardenRoles.Collaborator
+				    }))
+				throw new UnauthorizedException();
+			_gardenContext.Plants.Remove(plant);
+			await _gardenContext.SaveChangesAsync();
+			await _identityService.DeleteOrganizationalUnitAsync(new RemoveOrganizationalUnitRequest {
 				Id = plant.UnitId
 			});
-			
+
 			return new DeletePlantResponse {
 				Succeeded = true,
 				Messages = new[] {DeletePlantResponse.Message.PlantDeletionSuccessfully}
@@ -120,7 +119,28 @@ public class PlantService : IPlantService {
 					Succeeded = false,
 					Errors = new[] {DeletePlantResponse.Error.PlantDeletionError}
 				};
-			
+
+			throw;
+		}
+	}
+
+	public async Task<GetPlantDataResponse> GetPlantDataAsync() {
+		try {
+			var platDataList = await _gardenContext.PlantData.ToListAsync();
+
+			return new GetPlantDataResponse {
+				Succeeded = true,
+				PlantDataList = platDataList,
+				Messages = new[] {GetPlantDataResponse.Message.PlantDataReturnSuccessfully}
+			};
+		}
+		catch (Exception e) {
+			if (e is DbUpdateException or DbUpdateConcurrencyException or OperationCanceledException)
+				return new GetPlantDataResponse {
+					Succeeded = false,
+					Errors = new[] {GetPlantDataResponse.Error.PlantDataReturnError}
+				};
+
 			throw;
 		}
 	}

@@ -1,0 +1,16 @@
+﻿[
+  {
+    "BotanicalName": "Solanum lycopersicum San Marzano",
+    "FriendlyName": "San Marzano Tomate",
+    "DaysToMature": 120,
+    "GrowthPerDay": 1,
+    "AvgFruitWeight": 250
+  },
+  {
+    "BotanicalName": "Cucumis sativus Marumba",
+    "FriendlyName": "Marumba Gruke",
+    "DaysToMature": 200,
+    "GrowthPerDay": 0.5,
+    "AvgFruitWeight": 350
+  }
+]
