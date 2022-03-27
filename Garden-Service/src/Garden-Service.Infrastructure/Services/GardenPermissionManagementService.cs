@@ -48,7 +48,7 @@ public class GardenPermissionManagementService : IGardenPermissionManagementServ
 			};
 		if (!await _identityService.CheckUserHasAnyRole(
 			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], garden.UnitId, new[] {
-				    GardenRoles.Owner
+				    GardenRoles.Owner, GardenRoles.Collaborator, GardenRoles.Visitor
 			    }))
 			throw new UnauthorizedException();
 		using var httpClient = new HttpClient();
@@ -104,8 +104,13 @@ public class GardenPermissionManagementService : IGardenPermissionManagementServ
 
 		var response =
 			await httpClient
-				.SendPostAsync<CreatePermissionForGardenRequest, AddOrganizationalUnitUserClaimResponse>(
-					_gatewayOptions.Routes.AuthorizationUnitUserClaim, request);
+				.SendPostAsync<AddOrganizationalUnitUserClaimRequest, AddOrganizationalUnitUserClaimResponse>(
+					_gatewayOptions.Routes.AuthorizationUnitUserClaim, new AddOrganizationalUnitUserClaimRequest() {
+						UnitId = garden.UnitId,
+						UserId = request.UserId,
+						Type = request.Type,
+						Value = request.Value
+					});
 
 		if (response is null || response.Succeeded is false) {
 			if (response != null)
@@ -153,11 +158,29 @@ public class GardenPermissionManagementService : IGardenPermissionManagementServ
 			    }))
 			throw new UnauthorizedException();
 		using var httpClient = new HttpClient();
-		Console.WriteLine(request.PermissionId);
+		
+		var permissionsResponse = await this.GetPermissionsForGardenAsync(new GetAssignedPermissionsForGardenRequest {GardenId = request.GardenId});
+		
+		if (!permissionsResponse.Succeeded)
+			return new DeletePermissionForGardenResponse {
+				Errors =
+					new[] {DeletePermissionForGardenResponse.Error.DeletePermissionForGardenError}.Concat(
+						permissionsResponse.Errors)
+			};
+		
+		// if the permission that belongs to the id is the owner-role permission
+		// finding the permission and then check condition can be merged to Any
+		if (permissionsResponse.AssignedPermissionsForGarden.Any(p =>
+			    p.Id.Equals(request.PermissionId) && p.Type.Equals(UserClaimTypes.Role.ToString()) &&
+			    p.Value.Equals(GardenRoles.Owner.ToString())))
+			return new DeletePermissionForGardenResponse {
+				Errors = new[] {DeletePermissionForGardenResponse.Error.DeletionNotAllowed}
+			};
+		
 		var removeOrganizationalUnitUserClaimRequest = new RemoveOrganizationalUnitUserClaimRequest {
 			Id = request.PermissionId
 		};
-		Console.WriteLine(removeOrganizationalUnitUserClaimRequest.Id);
+		
 		var response =
 			await httpClient
 				.SendDeleteAsync<RemoveOrganizationalUnitUserClaimRequest, RemoveOrganizationalUnitUserClaimResponse>(

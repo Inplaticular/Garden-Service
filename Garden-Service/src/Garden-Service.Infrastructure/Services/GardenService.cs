@@ -131,9 +131,10 @@ public class GardenService : IGardenService {
 					    GardenRoles.Owner
 				    }))
 				throw new UnauthorizedException();
-			var deletePlantTasks = garden.Plants
-				.Select(plant => _plantService.DeletePlantAsync(new DeletePlantRequest {PlantId = plant.Id})).ToArray();
-			await Task.WhenAll(deletePlantTasks);
+
+			// Is slow but Database context is not thread-save
+			foreach (var plant in garden.Plants)
+				await _plantService.DeletePlantAsync(new DeletePlantRequest {PlantId = plant.Id});
 
 			_gardenContext.Gardens.Remove(garden);
 			await _gardenContext.SaveChangesAsync();
