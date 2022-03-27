@@ -1,4 +1,6 @@
-﻿namespace Inplanticular.Garden_Service.Core.Models;
+﻿using Newtonsoft.Json;
+
+namespace Inplanticular.Garden_Service.Core.Models;
 
 public class Plant {
 	public Plant() {
@@ -27,5 +29,9 @@ public class Plant {
 	public int RipePercentage { get; } = 1;
 
 	//yield related
-	public double ActFruitCount { get; } = 0;
+	public int ActFruitCount { get; } = 0;
+
+	public override string ToString() {
+		return JsonConvert.SerializeObject(this);
+	}
 }

@@ -9,4 +9,8 @@ public interface IPlantService {
 	Task<DeletePlantResponse> DeletePlantAsync(DeletePlantRequest request);
 
 	Task<GetPlantDataResponse> GetPlantDataAsync();
+
+	Task<GetYieldCalculationResponse> GetYieldCalculationAsync(GetYieldCalculationRequest request);
+
+	Task<GetGrowthCalculationResponse> GetGrowthCalculationAsync(GetGrowthCalculationRequest request);
 }

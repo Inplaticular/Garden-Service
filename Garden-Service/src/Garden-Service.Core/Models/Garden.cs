@@ -1,4 +1,6 @@
-﻿namespace Inplanticular.Garden_Service.Core.Models;
+﻿using Newtonsoft.Json;
+
+namespace Inplanticular.Garden_Service.Core.Models;
 
 public class Garden {
 	public Garden() {
@@ -22,4 +24,8 @@ public class Garden {
 	public double CoordinateLongitude { get; set; }
 	public DateTime DateOfCreation { get; set; }
 	public ICollection<Plant> Plants { get; set; }
+
+	public override string ToString() {
+		return JsonConvert.SerializeObject(this);
+	}
 }

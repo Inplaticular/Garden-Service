@@ -63,4 +63,26 @@ public class PlantController : ControllerBase {
 			return this.ErrorResponse<GetPlantDataResponse>(e);
 		}
 	}
+
+	[HttpPost]
+	[Route("yield")]
+	public async Task<IActionResult> GetYieldAsync(GetYieldCalculationRequest request) {
+		try {
+			var getYieldResponse = await _plantService.GetYieldCalculationAsync(request);
+			return Ok(getYieldResponse);
+		}
+		catch (Exception e) {
+			_logger.LogError(e, $"{nameof(GetYieldAsync)} threw an exception");
+			return this.ErrorResponse<GetYieldCalculationResponse>(e);
+		}
+	}
+
+	[HttpPost]
+	[Route("growth")]
+	public async Task<IActionResult> GetGrowthAsync(GetGrowthCalculationRequest request) {
+		
+			var getGrowthResponse = await _plantService.GetGrowthCalculationAsync(request);
+			return Ok(getGrowthResponse);
+		
+	}
 }
