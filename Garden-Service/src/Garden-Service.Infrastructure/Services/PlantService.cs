@@ -152,34 +152,31 @@ public class PlantService : IPlantService {
 	}
 
 	public async Task<GetYieldCalculationResponse> GetYieldCalculationAsync(GetYieldCalculationRequest request) {
-		var plant = await _gardenContext.Plants.FindAsync(request.PlantId);
+		var plant = await _gardenContext.Plants.Include(p => p.Garden).Include(p => p.PlantData).SingleOrDefaultAsync(p => p.Id == request.PlantId);
 
 		if (plant is null)
 			return new GetYieldCalculationResponse {
 				Succeeded = false,
 				Errors = new[] {GetYieldCalculationResponse.Error.GetYieldCalculationError}
 			};
-
-		var garden = await _gardenContext.Gardens.FindAsync(plant.GardenId);
-		if (garden is null)
-			return new GetYieldCalculationResponse {
-				Succeeded = false,
-				Errors = new[] {GetYieldCalculationResponse.Error.GetYieldCalculationError}
-			};
-		plant.Garden = garden;
+		
 		if (!await _identityService.CheckUserHasAnyRole(
 			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId, new[] {
 				    GardenRoles.Owner, GardenRoles.Collaborator
 			    }))
 			throw new UnauthorizedException();
 		using var httpClient = new HttpClient();
+		var actFruitCount = plant.ActFruitCount;
+		if (request.ActFruitCount is not 0)
+			actFruitCount = request.ActFruitCount;
+		
 		var yieldRequest = new YieldCalcRequest {
-			PlantCoordinateLatitude = garden.CoordinateLatitude,
-			PlantCoordinateLongitude = garden.CoordinateLongitude,
-			AvgFruitWeight = 250,
-			ActFruitCount = plant.ActFruitCount,
-			FertilizerPercentage = 1.0,
-			DaysWithoutWater = 0
+			PlantCoordinateLatitude = plant.Garden.CoordinateLatitude,
+			PlantCoordinateLongitude = plant.Garden.CoordinateLongitude,
+			AvgFruitWeight = plant.PlantData.AvgFruitWeight,
+			ActFruitCount = actFruitCount,
+			FertilizerPercentage = request.FertilizerPercentage,
+			DaysWithoutWater = request.DaysWithoutWater
 		};
 
 		var response = await httpClient.SendPostAsync<YieldCalcRequest, YieldCalcResponse>(
@@ -205,21 +202,13 @@ public class PlantService : IPlantService {
 	}
 
 	public async Task<GetGrowthCalculationResponse> GetGrowthCalculationAsync(GetGrowthCalculationRequest request) {
-		var plant = await _gardenContext.Plants.FindAsync(request.PlantId);
-
+		var plant = await _gardenContext.Plants.Include(p => p.Garden).Include(p => p.PlantData).SingleOrDefaultAsync(p => p.Id == request.PlantId);
 		if (plant is null)
 			return new GetGrowthCalculationResponse {
 				Succeeded = false,
 				Errors = new[] {GetGrowthCalculationResponse.Error.GetGrowthCalculationError}
 			};
-
-		var garden = await _gardenContext.Gardens.FindAsync(plant.GardenId);
-		if (garden is null)
-			return new GetGrowthCalculationResponse {
-				Succeeded = false,
-				Errors = new[] {GetGrowthCalculationResponse.Error.GetGrowthCalculationError}
-			};
-		plant.Garden = garden;
+		
 		if (!await _identityService.CheckUserHasAnyRole(
 			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId, new[] {
 				    GardenRoles.Owner, GardenRoles.Collaborator
@@ -231,9 +220,9 @@ public class PlantService : IPlantService {
 			PlantCoordinateLongitude = plant.Garden.CoordinateLongitude,
 			TimeFromPlanting = plant.TimeFromPlanting,
 			RipePercentageYesterday = plant.RipePercentage,
-			GrowthPerDay = 1.5,
-			FertilizerPercentageToday = 1.0,
-			DaysWithoutWater = 0
+			GrowthPerDay = plant.PlantData.GrowthPerDay,
+			FertilizerPercentageToday = request.FertilizerPercentage,
+			DaysWithoutWater = request.DaysWithoutWater
 		};
 		var response = await httpClient.SendPostAsync<GrowthCalcRequest, GrowthCalcResponse>(
 			_gatewayOptions.Routes.GrowthCalculation, growthRequest);
