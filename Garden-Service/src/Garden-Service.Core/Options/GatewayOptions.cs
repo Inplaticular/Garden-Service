@@ -14,4 +14,7 @@ public class Routes {
 	public string AuthorizationGroup { get; set; }
 	public string AuthorizationUnit { get; set; }
 	public string AuthorizationUnitUserClaim { get; set; }
+	
+	public string GrowthCalculation { get; set; }
+	public string YieldCalculation { get; set; }
 }

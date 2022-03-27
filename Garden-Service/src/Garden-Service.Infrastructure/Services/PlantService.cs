@@ -1,4 +1,6 @@
-﻿using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Requests.Authorization.Groups;
+﻿using Inplanticular.Garden_Service.Core.Contracts.V1.External.CalculationService.Requests;
+using Inplanticular.Garden_Service.Core.Contracts.V1.External.CalculationService.Responses;
+using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Requests.Authorization.Groups;
 using Inplanticular.Garden_Service.Core.Contracts.V1.External.IdentityService.Requests.Authorization.Units;
 using Inplanticular.Garden_Service.Core.Contracts.V1.Requests;
 using Inplanticular.Garden_Service.Core.Contracts.V1.Responses;
@@ -7,6 +9,7 @@ using Inplanticular.Garden_Service.Core.Exceptions;
 using Inplanticular.Garden_Service.Core.Models;
 using Inplanticular.Garden_Service.Core.Options;
 using Inplanticular.Garden_Service.Core.Services;
+using Inplanticular.Garden_Service.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -16,16 +19,19 @@ namespace Inplanticular.Garden_Service.Infrastructure.Services;
 
 public class PlantService : IPlantService {
 	private readonly GardenContext _gardenContext;
+	private readonly GatewayOptions _gatewayOptions;
 	private readonly IHttpContextAccessor _httpContextAccessor;
 	private readonly IIdentityService _identityService;
 	private readonly IdentityServiceOptions _identityServiceOptions;
 
 	public PlantService(GardenContext gardenContext, IIdentityService identityService,
-		IOptions<IdentityServiceOptions> identityServiceOptions, IHttpContextAccessor httpContextAccessor) {
+		IOptions<IdentityServiceOptions> identityServiceOptions, IOptions<GatewayOptions> gatewayOptions,
+		IHttpContextAccessor httpContextAccessor) {
 		_gardenContext = gardenContext;
 		_identityService = identityService;
-		_httpContextAccessor = httpContextAccessor;
 		_identityServiceOptions = identityServiceOptions.Value;
+		_gatewayOptions = gatewayOptions.Value;
+		_httpContextAccessor = httpContextAccessor;
 	}
 
 	public async Task<CreatePlantResponse> CreatePlantAsync(CreatePlantRequest request) {
@@ -143,5 +149,101 @@ public class PlantService : IPlantService {
 
 			throw;
 		}
+	}
+
+	public async Task<GetYieldCalculationResponse> GetYieldCalculationAsync(GetYieldCalculationRequest request) {
+		var plant = await _gardenContext.Plants.Include(p => p.Garden).Include(p => p.PlantData).SingleOrDefaultAsync(p => p.Id == request.PlantId);
+
+		if (plant is null)
+			return new GetYieldCalculationResponse {
+				Succeeded = false,
+				Errors = new[] {GetYieldCalculationResponse.Error.GetYieldCalculationError}
+			};
+		
+		if (!await _identityService.CheckUserHasAnyRole(
+			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId, new[] {
+				    GardenRoles.Owner, GardenRoles.Collaborator
+			    }))
+			throw new UnauthorizedException();
+		using var httpClient = new HttpClient();
+		var actFruitCount = plant.ActFruitCount;
+		if (request.ActFruitCount is not 0)
+			actFruitCount = request.ActFruitCount;
+		
+		var yieldRequest = new YieldCalcRequest {
+			PlantCoordinateLatitude = plant.Garden.CoordinateLatitude,
+			PlantCoordinateLongitude = plant.Garden.CoordinateLongitude,
+			AvgFruitWeight = plant.PlantData.AvgFruitWeight,
+			ActFruitCount = actFruitCount,
+			FertilizerPercentage = request.FertilizerPercentage,
+			DaysWithoutWater = request.DaysWithoutWater
+		};
+
+		var response = await httpClient.SendPostAsync<YieldCalcRequest, YieldCalcResponse>(
+			_gatewayOptions.Routes.YieldCalculation, yieldRequest);
+
+
+		if (response is null)
+			return new GetYieldCalculationResponse {
+				Succeeded = false,
+				Errors = new[] {GetYieldCalculationResponse.Error.GetYieldCalculationError}
+			};
+		if (response.Succeeded)
+			return new GetYieldCalculationResponse {
+				Succeeded = true,
+				Yield = response.Yield,
+				Messages = new[] {GetYieldCalculationResponse.Message.GetYieldCalculationSuccessfully}
+			};
+
+		return new GetYieldCalculationResponse {
+			Succeeded = false,
+			Errors = new[] {GetYieldCalculationResponse.Error.GetYieldCalculationError}
+		};
+	}
+
+	public async Task<GetGrowthCalculationResponse> GetGrowthCalculationAsync(GetGrowthCalculationRequest request) {
+		var plant = await _gardenContext.Plants.Include(p => p.Garden).Include(p => p.PlantData).SingleOrDefaultAsync(p => p.Id == request.PlantId);
+		if (plant is null)
+			return new GetGrowthCalculationResponse {
+				Succeeded = false,
+				Errors = new[] {GetGrowthCalculationResponse.Error.GetGrowthCalculationError}
+			};
+		
+		if (!await _identityService.CheckUserHasAnyRole(
+			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId, new[] {
+				    GardenRoles.Owner, GardenRoles.Collaborator
+			    }))
+			throw new UnauthorizedException();
+		using var httpClient = new HttpClient();
+		var growthRequest = new GrowthCalcRequest {
+			PlantCoordinateLatitude = plant.Garden.CoordinateLatitude,
+			PlantCoordinateLongitude = plant.Garden.CoordinateLongitude,
+			TimeFromPlanting = plant.TimeFromPlanting,
+			RipePercentageYesterday = plant.RipePercentage,
+			GrowthPerDay = plant.PlantData.GrowthPerDay,
+			FertilizerPercentageToday = request.FertilizerPercentage,
+			DaysWithoutWater = request.DaysWithoutWater
+		};
+		var response = await httpClient.SendPostAsync<GrowthCalcRequest, GrowthCalcResponse>(
+			_gatewayOptions.Routes.GrowthCalculation, growthRequest);
+
+
+		if (response is null)
+			return new GetGrowthCalculationResponse {
+				Succeeded = false,
+				Errors = new[] {GetGrowthCalculationResponse.Error.GetGrowthCalculationError}
+			};
+		if (response.Succeeded)
+			return new GetGrowthCalculationResponse {
+				Succeeded = true,
+				GrowthPercentage = response.GrowthPercentage,
+				RipeTime = response.RipeTime,
+				Messages = new[] {GetGrowthCalculationResponse.Message.GetGrowthCalculationSuccessfully}
+			};
+
+		return new GetGrowthCalculationResponse {
+			Succeeded = false,
+			Errors = new[] {GetGrowthCalculationResponse.Error.GetGrowthCalculationError}
+		};
 	}
 }

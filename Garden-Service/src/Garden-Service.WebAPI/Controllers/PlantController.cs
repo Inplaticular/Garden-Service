@@ -19,8 +19,16 @@ public class PlantController : ControllerBase {
 		_logger = logger;
 	}
 
+	/// <summary>
+	///     Creates a new plant, the gardenId specifies the garden, the plant growths in.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Your userId is not matching the authentication token, you're logged in with.
+	/// </response>
 	[HttpPost]
 	[UserAuthorized]
+	[ProducesResponseType(typeof(CreatePlantResponse), 200)]
+	[ProducesResponseType(401)]
 	public async Task<IActionResult> CreatePlant(CreatePlantRequest request) {
 		try {
 			var createPlantResponse = await _plantService.CreatePlantAsync(request);
@@ -35,8 +43,16 @@ public class PlantController : ControllerBase {
 		}
 	}
 
+	/// <summary>
+	///     Deletes the plant matching the passed plantId.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Only owner and collaborators are allowed to delete a plant.
+	/// </response>
 	[HttpDelete]
 	[UserAuthorized]
+	[ProducesResponseType(typeof(DeletePlantResponse), 200)]
+	[ProducesResponseType(401)]
 	public async Task<IActionResult> DeletePlant(DeletePlantRequest request) {
 		try {
 			var deletePlantResponse = await _plantService.DeletePlantAsync(request);
@@ -51,8 +67,12 @@ public class PlantController : ControllerBase {
 		}
 	}
 
+	/// <summary>
+	///     Returns a choose-from-list of all plants currently available in Inplanticular
+	/// </summary>
 	[HttpGet]
 	[Route("plant_data")]
+	[ProducesResponseType(typeof(GetPlantDataResponse), 200)]
 	public async Task<IActionResult> GetPlantDataAsync() {
 		try {
 			var getPlantDataResponse = await _plantService.GetPlantDataAsync();
@@ -61,6 +81,56 @@ public class PlantController : ControllerBase {
 		catch (Exception e) {
 			_logger.LogError(e, $"{nameof(GetPlantDataAsync)} threw an exception");
 			return this.ErrorResponse<GetPlantDataResponse>(e);
+		}
+	}
+
+	/// <summary>
+	///     Calls Calculation-Service to calculate the yield of a plant manually.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Only owners, collaborators and visitors are allowed to call for yield-calculation.
+	/// </response>
+	[HttpPost]
+	[Route("yield")]
+	[UserAuthorized]
+	[ProducesResponseType(typeof(GetYieldCalculationResponse), 200)]
+	[ProducesResponseType(401)]
+	public async Task<IActionResult> GetYieldAsync(GetYieldCalculationRequest request) {
+		try {
+			var getYieldResponse = await _plantService.GetYieldCalculationAsync(request);
+			return Ok(getYieldResponse);
+		}
+		catch (UnauthorizedException) {
+			return Unauthorized();
+		}
+		catch (Exception e) {
+			_logger.LogError(e, $"{nameof(GetYieldAsync)} threw an exception");
+			return this.ErrorResponse<GetYieldCalculationResponse>(e);
+		}
+	}
+
+	/// <summary>
+	///     Calls Calculation-Service to calculate the growth of a plant manually.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Only owners, collaborators and visitors are allowed to call for growth-calculation.
+	/// </response>
+	[HttpPost]
+	[Route("growth")]
+	[UserAuthorized]
+	[ProducesResponseType(typeof(GetGrowthCalculationResponse), 200)]
+	[ProducesResponseType(401)]
+	public async Task<IActionResult> GetGrowthAsync(GetGrowthCalculationRequest request) {
+		try {
+			var getGrowthResponse = await _plantService.GetGrowthCalculationAsync(request);
+			return Ok(getGrowthResponse);
+		}
+		catch (UnauthorizedException) {
+			return Unauthorized();
+		}
+		catch (Exception e) {
+			_logger.LogError(e, $"{nameof(GetGrowthAsync)} threw an exception");
+			return this.ErrorResponse<GetGrowthCalculationResponse>(e);
 		}
 	}
 }

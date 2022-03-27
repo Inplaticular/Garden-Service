@@ -20,8 +20,12 @@ public class GardenPermissionManagementController : ControllerBase {
 		_logger = logger;
 	}
 
+	/// <summary>
+	///     Get all assignable roles available in Inplanticular
+	/// </summary>
 	[HttpGet]
 	[Route("roles")]
+	[ProducesResponseType(typeof(GetAssignableRolesResponse), 200)]
 	public IActionResult GetAssignableRoles() {
 		try {
 			var getAssignableRolesResponse = _gardenPermissionManagementService.GetAssignableRoles();
@@ -33,8 +37,16 @@ public class GardenPermissionManagementController : ControllerBase {
 		}
 	}
 
+	/// <summary>
+	///     Gets permissions for a certain garden
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Your userId is not matching the authentication token, you're logged in with.
+	/// </response>
 	[HttpGet]
 	[UserAuthorized]
+	[ProducesResponseType(typeof(GetAssignedPermissionsForGardenResponse), 200)]
+	[ProducesResponseType(401)]
 	public async Task<IActionResult> GetPermissionsForGardenAsync(
 		[FromQuery] GetAssignedPermissionsForGardenRequest request) {
 		try {
@@ -51,8 +63,16 @@ public class GardenPermissionManagementController : ControllerBase {
 		}
 	}
 
+	/// <summary>
+	///     Creates permissions for the passed user and garden.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Only the owner is capable of creating new permissions
+	/// </response>
 	[HttpPost]
 	[UserAuthorized]
+	[ProducesResponseType(typeof(CreatePermissionForGardenResponse), 200)]
+	[ProducesResponseType(401)]
 	public async Task<IActionResult> CreatePermissionForGardenAsync(CreatePermissionForGardenRequest request) {
 		try {
 			var createPermissionForGardenResponse =
@@ -68,8 +88,16 @@ public class GardenPermissionManagementController : ControllerBase {
 		}
 	}
 
+	/// <summary>
+	///     Deletes permissions for the passed user and garden.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Only the owner is capable of deleting permissions.
+	/// </response>
 	[HttpDelete]
 	[UserAuthorized]
+	[ProducesResponseType(typeof(DeletePermissionForGardenResponse), 200)]
+	[ProducesResponseType(401)]
 	public async Task<IActionResult> DeletePermissionForGardenAsync(DeletePermissionForGardenRequest request) {
 		try {
 			var deletePermissionForGardenResponse =

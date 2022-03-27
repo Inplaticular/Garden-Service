@@ -27,5 +27,5 @@ public class Plant {
 	public int RipePercentage { get; } = 1;
 
 	//yield related
-	public double ActFruitCount { get; } = 0;
+	public int ActFruitCount { get; } = 0;
 }

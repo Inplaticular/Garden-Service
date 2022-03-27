@@ -19,6 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Contracts\V1\External\CalculationService" />
       <Folder Include="Models\External" />
     </ItemGroup>
 
