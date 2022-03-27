@@ -22,8 +22,16 @@ public class GardenController : ControllerBase {
 		_identityService = identityService;
 	}
 
+	/// <summary>
+	///     Creates a garden and sets the passed user as its owner. New gardens does not contain plants.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: It seems your userId is not matching with your authorization token.
+	/// </response>
 	[HttpPost]
 	[UserAuthorized]
+	[ProducesResponseType(typeof(CreateGardenResponse), 200)]
+	[ProducesResponseType(401)]
 	public async Task<IActionResult> CreateGarden(CreateGardenRequest request) {
 		try {
 			var createGardenResponse = await _gardenService.CreateGardenAsync(request);
@@ -38,8 +46,16 @@ public class GardenController : ControllerBase {
 		}
 	}
 
+	/// <summary>
+	///     Edits a garden. At the moment, only the name is editable.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Only owners and collaborators are allowed to edit the garden.
+	/// </response>
 	[HttpPut]
 	[UserAuthorized]
+	[ProducesResponseType(typeof(EditGardenResponse), 200)]
+	[ProducesResponseType(401)]
 	public async Task<IActionResult> UpdateGarden(EditGardenRequest request) {
 		try {
 			var editGardenResponse = await _gardenService.EditGardenAsync(request);
@@ -54,8 +70,17 @@ public class GardenController : ControllerBase {
 		}
 	}
 
+	/// <summary>
+	///     Deletes a garden, thereby checking the logged in user is the owner of the garden.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Since owners are the only ones
+	///     capable of deleting their garden, it seems you're not the owner of this garden.
+	/// </response>
 	[HttpDelete]
 	[UserAuthorized]
+	[ProducesResponseType(typeof(DeleteGardenResponse), 200)]
+	[ProducesResponseType(401)]
 	public async Task<IActionResult> DeleteGarden(DeleteGardenRequest request) {
 		try {
 			var deleteGardenResponse = await _gardenService.DeleteGardenAsync(request);
@@ -70,8 +95,16 @@ public class GardenController : ControllerBase {
 		}
 	}
 
+	/// <summary>
+	///     Gets the garden with the provided id.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Only owners, collaborators and visitors are allowed to get a single garden.
+	/// </response>
 	[HttpGet]
 	[UserAuthorized]
+	[ProducesResponseType(typeof(GetSingleGardenResponse), 200)]
+	[ProducesResponseType(401)]
 	public async Task<IActionResult> GetSingleGardenAsync([FromQuery] GetSingleGardenRequest request) {
 		try {
 			var getSingleGardenResponse = await _gardenService.GetSingleGardenAsync(request);
@@ -86,9 +119,17 @@ public class GardenController : ControllerBase {
 		}
 	}
 
+	/// <summary>
+	///     Gets all gardens, that belong to the user with the passed id.
+	/// </summary>
+	/// <response code="401">
+	///     UNAUTHORIZED: Your userId is not matching the authentication token, you're logged in with.
+	/// </response>
 	[HttpGet]
 	[UserAuthorized]
 	[Route("list")]
+	[ProducesResponseType(typeof(GetGardenResponse), 200)]
+	[ProducesResponseType(401)]
 	public async Task<IActionResult> GetGarden([FromQuery] GetGardenRequest request) {
 		try {
 			var getGardenResponse = await _gardenService.GetGardenAsync(request);

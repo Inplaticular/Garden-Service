@@ -10,7 +10,7 @@ public class GetGrowthCalculationResponse : BaseResponse {
 		public static readonly ValueObjects.Message
 			GetGrowthCalculationSuccessfully = new() {
 				Code = nameof(GetGrowthCalculationSuccessfully),
-				Description = "The assigned permissions were returned successfully."
+				Description = "The growth was calculated successfully."
 			};
 	}
 
@@ -18,7 +18,7 @@ public class GetGrowthCalculationResponse : BaseResponse {
 		public static readonly ValueObjects.Message
 			GetGrowthCalculationError = new() {
 				Code = nameof(GetGrowthCalculationError),
-				Description = "The return of the assigned permissions wasn't successfully."
+				Description = "The growth wasn't calculated successfully."
 			};
 	}
 }
