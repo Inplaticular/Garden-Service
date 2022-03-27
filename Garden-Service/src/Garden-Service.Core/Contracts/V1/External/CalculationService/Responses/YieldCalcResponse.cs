@@ -1,14 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Newtonsoft.Json;
 
 namespace Inplanticular.Garden_Service.Core.Contracts.V1.External.CalculationService.Responses;
 
 public class YieldCalcResponse : BaseResponse {
 	[Required] public double Yield { get; set; }
 
-	public override string ToString() {
-		return JsonConvert.SerializeObject(this);
-	}
 
 	public static class Message {
 		public static readonly ValueObjects.Message

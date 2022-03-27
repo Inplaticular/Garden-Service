@@ -27,7 +27,7 @@ public static class HttpClientExtensions {
 			return await ParseResponse<TResponse>(response);
 		}
 		catch (Exception) {
-			throw;
+			return default;
 		}
 	}
 

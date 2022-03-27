@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Inplanticular.Garden_Service.Core.Models;
+﻿namespace Inplanticular.Garden_Service.Core.Models;
 
 public class Plant {
 	public Plant() {
@@ -30,8 +28,4 @@ public class Plant {
 
 	//yield related
 	public int ActFruitCount { get; } = 0;
-
-	public override string ToString() {
-		return JsonConvert.SerializeObject(this);
-	}
 }
