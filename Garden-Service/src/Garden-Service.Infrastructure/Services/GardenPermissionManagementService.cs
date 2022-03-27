@@ -48,7 +48,7 @@ public class GardenPermissionManagementService : IGardenPermissionManagementServ
 			};
 		if (!await _identityService.CheckUserHasAnyRole(
 			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], garden.UnitId, new[] {
-				    GardenRoles.Owner
+				    GardenRoles.Owner, GardenRoles.Collaborator, GardenRoles.Visitor
 			    }))
 			throw new UnauthorizedException();
 		using var httpClient = new HttpClient();
@@ -104,8 +104,13 @@ public class GardenPermissionManagementService : IGardenPermissionManagementServ
 
 		var response =
 			await httpClient
-				.SendPostAsync<CreatePermissionForGardenRequest, AddOrganizationalUnitUserClaimResponse>(
-					_gatewayOptions.Routes.AuthorizationUnitUserClaim, request);
+				.SendPostAsync<AddOrganizationalUnitUserClaimRequest, AddOrganizationalUnitUserClaimResponse>(
+					_gatewayOptions.Routes.AuthorizationUnitUserClaim, new AddOrganizationalUnitUserClaimRequest() {
+						UnitId = garden.UnitId,
+						UserId = request.UserId,
+						Type = request.Type,
+						Value = request.Value
+					});
 
 		if (response is null || response.Succeeded is false) {
 			if (response != null)
