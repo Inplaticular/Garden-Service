@@ -117,7 +117,7 @@ public class PlantController : ControllerBase {
 	/// </response>
 	[HttpPost]
 	[Route("growth")]
-	[UserAuthorized]
+//	[UserAuthorized]
 	[ProducesResponseType(typeof(GetGrowthCalculationResponse), 200)]
 	[ProducesResponseType(401)]
 	public async Task<IActionResult> GetGrowthAsync(GetGrowthCalculationRequest request) {

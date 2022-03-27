@@ -152,14 +152,15 @@ public class PlantService : IPlantService {
 	}
 
 	public async Task<GetYieldCalculationResponse> GetYieldCalculationAsync(GetYieldCalculationRequest request) {
-		var plant = await _gardenContext.Plants.Include(p => p.Garden).Include(p => p.PlantData).SingleOrDefaultAsync(p => p.Id == request.PlantId);
+		var plant = await _gardenContext.Plants.Include(p => p.Garden).Include(p => p.PlantData)
+			.SingleOrDefaultAsync(p => p.Id == request.PlantId);
 
 		if (plant is null)
 			return new GetYieldCalculationResponse {
 				Succeeded = false,
 				Errors = new[] {GetYieldCalculationResponse.Error.GetYieldCalculationError}
 			};
-		
+
 		if (!await _identityService.CheckUserHasAnyRole(
 			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId, new[] {
 				    GardenRoles.Owner, GardenRoles.Collaborator
@@ -169,7 +170,7 @@ public class PlantService : IPlantService {
 		var actFruitCount = plant.ActFruitCount;
 		if (request.ActFruitCount is not 0)
 			actFruitCount = request.ActFruitCount;
-		
+
 		var yieldRequest = new YieldCalcRequest {
 			PlantCoordinateLatitude = plant.Garden.CoordinateLatitude,
 			PlantCoordinateLongitude = plant.Garden.CoordinateLongitude,
@@ -188,38 +189,41 @@ public class PlantService : IPlantService {
 				Succeeded = false,
 				Errors = new[] {GetYieldCalculationResponse.Error.GetYieldCalculationError}
 			};
-		if (response.Succeeded)
+		if (!response.Succeeded)
 			return new GetYieldCalculationResponse {
-				Succeeded = true,
-				Yield = response.Yield,
-				Messages = new[] {GetYieldCalculationResponse.Message.GetYieldCalculationSuccessfully}
+				Succeeded = false,
+				Errors = new[] {GetYieldCalculationResponse.Error.GetYieldCalculationError}
 			};
-
+		plant.ActFruitCount = actFruitCount;
+		plant.Yield = response.Yield;
+		await _gardenContext.SaveChangesAsync();
 		return new GetYieldCalculationResponse {
-			Succeeded = false,
-			Errors = new[] {GetYieldCalculationResponse.Error.GetYieldCalculationError}
+			Succeeded = true,
+			Yield = response.Yield,
+			Messages = new[] {GetYieldCalculationResponse.Message.GetYieldCalculationSuccessfully}
 		};
 	}
 
 	public async Task<GetGrowthCalculationResponse> GetGrowthCalculationAsync(GetGrowthCalculationRequest request) {
-		var plant = await _gardenContext.Plants.Include(p => p.Garden).Include(p => p.PlantData).SingleOrDefaultAsync(p => p.Id == request.PlantId);
+		var plant = await _gardenContext.Plants.Include(p => p.Garden).Include(p => p.PlantData)
+			.SingleOrDefaultAsync(p => p.Id == request.PlantId);
 		if (plant is null)
 			return new GetGrowthCalculationResponse {
 				Succeeded = false,
 				Errors = new[] {GetGrowthCalculationResponse.Error.GetGrowthCalculationError}
 			};
-		
-		if (!await _identityService.CheckUserHasAnyRole(
-			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId, new[] {
-				    GardenRoles.Owner, GardenRoles.Collaborator
-			    }))
-			throw new UnauthorizedException();
+
+		/*	if (!await _identityService.CheckUserHasAnyRole(
+				    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId, new[] {
+					    GardenRoles.Owner, GardenRoles.Collaborator
+				    }))
+				throw new UnauthorizedException();*/
 		using var httpClient = new HttpClient();
 		var growthRequest = new GrowthCalcRequest {
 			PlantCoordinateLatitude = plant.Garden.CoordinateLatitude,
 			PlantCoordinateLongitude = plant.Garden.CoordinateLongitude,
 			TimeFromPlanting = plant.TimeFromPlanting,
-			RipePercentageYesterday = plant.RipePercentage,
+			RipePercentageYesterday = plant.GrowthPercentage,
 			GrowthPerDay = plant.PlantData.GrowthPerDay,
 			FertilizerPercentageToday = request.FertilizerPercentage,
 			DaysWithoutWater = request.DaysWithoutWater
@@ -233,17 +237,20 @@ public class PlantService : IPlantService {
 				Succeeded = false,
 				Errors = new[] {GetGrowthCalculationResponse.Error.GetGrowthCalculationError}
 			};
-		if (response.Succeeded)
+		if (!response.Succeeded)
 			return new GetGrowthCalculationResponse {
-				Succeeded = true,
-				GrowthPercentage = response.GrowthPercentage,
-				RipeTime = response.RipeTime,
-				Messages = new[] {GetGrowthCalculationResponse.Message.GetGrowthCalculationSuccessfully}
+				Succeeded = false,
+				Errors = new[] {GetGrowthCalculationResponse.Error.GetGrowthCalculationError}
 			};
+		plant.GrowthPercentage = response.GrowthPercentage;
+		plant.DaysToMature = response.RipeTime;
+		await _gardenContext.SaveChangesAsync();
 
 		return new GetGrowthCalculationResponse {
-			Succeeded = false,
-			Errors = new[] {GetGrowthCalculationResponse.Error.GetGrowthCalculationError}
+			Succeeded = true,
+			GrowthPercentage = response.GrowthPercentage,
+			RipeTime = response.RipeTime,
+			Messages = new[] {GetGrowthCalculationResponse.Message.GetGrowthCalculationSuccessfully}
 		};
 	}
 }
