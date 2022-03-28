@@ -9,17 +9,19 @@
 		<AssemblyName>Inplanticular.Garden-Service.WebAPI</AssemblyName>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.3" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.3">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="StackExchange.Redis" Version="2.2.88" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.16.0" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="EasyCaching.Redis" Version="1.5.1" />
+        <PackageReference Include="EFCoreSecondLevelCacheInterceptor" Version="3.4.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.3">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.16.0" />
+    </ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Garden-Service.Infrastructure\Garden-Service.Infrastructure.csproj" />

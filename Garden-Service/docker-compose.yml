@@ -21,6 +21,13 @@ services:
     networks:
       - inplanticular_net
 
+  garden_cache:
+    image: redis:6.2.6-alpine
+    restart: unless-stopped
+    command: redis-server --loglevel warning
+    networks:
+      - inplanticular_net
+
 networks:
   inplanticular_net:
     name: inplanticular_net

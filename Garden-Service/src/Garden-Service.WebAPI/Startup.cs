@@ -1,4 +1,8 @@
 ﻿using System.Reflection;
+using EasyCaching.Core.Configurations;
+
+using EFCoreSecondLevelCacheInterceptor;
+
 using Inplanticular.Garden_Service.Core.Models;
 using Inplanticular.Garden_Service.Core.Options;
 using Inplanticular.Garden_Service.Core.Services;
@@ -22,10 +26,32 @@ public class Startup {
 		services.Configure<GatewayOptions>(Configuration.GetSection(GatewayOptions.AppSettingsKey));
 		services.Configure<IdentityServiceOptions>(Configuration.GetSection(IdentityServiceOptions.AppSettingsKey));
 
-		services.AddDbContext<GardenContext>(options =>
-			options.UseNpgsql(Configuration.GetConnectionString("postgres"),
-				b => b.MigrationsAssembly("Inplanticular.Garden-Service.WebAPI"))
+		var redisOptions = new RedisOptions();
+		this.Configuration.Bind(RedisOptions.AppSettingsKey, redisOptions);
+		services.Configure<RedisOptions>(this.Configuration.GetSection(RedisOptions.AppSettingsKey));
+		
+		services.AddEasyCaching(options => {
+			options.UseRedis(opt => {
+				opt.DBConfig.AllowAdmin = redisOptions.AllowAdmin;
+				opt.DBConfig.SyncTimeout = redisOptions.SyncTimeout;
+				opt.DBConfig.AsyncTimeout = redisOptions.AsyncTimeout;
+				opt.DBConfig.Endpoints.Add(new ServerEndPoint(redisOptions.Host, redisOptions.Port));
+			}, redisOptions.ProviderName);
+		});
+
+		services.AddEFSecondLevelCache(options => {
+			options
+				.UseEasyCachingCoreProvider(redisOptions.ProviderName, redisOptions.IsHybridCache)
+				.DisableLogging(redisOptions.DisableLogging)
+				.UseCacheKeyPrefix("EF_");
+		});
+		
+		services.AddDbContext<GardenContext>(
+			(serviceProvider, options) => options
+				.UseNpgsql(Configuration.GetConnectionString("postgres"),b => b.MigrationsAssembly("Inplanticular.Garden-Service.WebAPI"))
+				.AddInterceptors(serviceProvider.GetRequiredService<SecondLevelCacheInterceptor>())
 		);
+		
 		services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 		services.AddScoped<IPlantService, PlantService>();
 		services.AddScoped<IGardenService, GardenService>();
