@@ -73,6 +73,7 @@ public class PlantService : IPlantService {
 				};
 
 			plant.UnitId = unit.Id;
+			plant.PlantedAtDateTime = DateTime.UtcNow;
 			_gardenContext.Plants.Add(plant);
 			await _gardenContext.SaveChangesAsync();
 
@@ -213,16 +214,16 @@ public class PlantService : IPlantService {
 				Errors = new[] {GetGrowthCalculationResponse.Error.GetGrowthCalculationError}
 			};
 
-		/*	if (!await _identityService.CheckUserHasAnyRole(
-				    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId, new[] {
-					    GardenRoles.Owner, GardenRoles.Collaborator
-				    }))
-				throw new UnauthorizedException();*/
+		if (!await _identityService.CheckUserHasAnyRole(
+			    _httpContextAccessor.HttpContext.Request.Headers[HeaderNames.Authorization], plant.Garden.UnitId, new[] {
+				    GardenRoles.Owner, GardenRoles.Collaborator
+			    }))
+			throw new UnauthorizedException();
 		using var httpClient = new HttpClient();
 		var growthRequest = new GrowthCalcRequest {
 			PlantCoordinateLatitude = plant.Garden.CoordinateLatitude,
 			PlantCoordinateLongitude = plant.Garden.CoordinateLongitude,
-			TimeFromPlanting = plant.TimeFromPlanting,
+			TimeFromPlanting = (DateTime.Now - plant.PlantedAtDateTime).Days+1,
 			RipePercentageYesterday = plant.GrowthPercentage,
 			GrowthPerDay = plant.PlantData.GrowthPerDay,
 			FertilizerPercentageToday = request.FertilizerPercentage,

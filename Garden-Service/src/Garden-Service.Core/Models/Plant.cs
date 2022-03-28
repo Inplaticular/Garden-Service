@@ -23,10 +23,8 @@ public class Plant {
 	//often changed members
 	//growth related
 	public int DaysToMature { get; set; }
-	public int TimeFromPlanting { get; set; } = 1;
-
+	public DateTime PlantedAtDateTime { get; set; }
 	public double GrowthPercentage { get; set; } = 1;
-
 	public double Yield { get; set; } = 0;
 
 	//yield related
