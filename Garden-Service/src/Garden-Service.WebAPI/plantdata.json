@@ -2,15 +2,58 @@
   {
     "BotanicalName": "Solanum lycopersicum San Marzano",
     "FriendlyName": "San Marzano Tomate",
-    "DaysToMature": 120,
-    "GrowthPerDay": 1,
-    "AvgFruitWeight": 250
+    "GrowthPerDay": 0.83,
+    "AvgFruitWeight": 180
   },
   {
     "BotanicalName": "Cucumis sativus Marumba",
     "FriendlyName": "Marumba Gruke",
-    "DaysToMature": 200,
-    "GrowthPerDay": 0.5,
+    "GrowthPerDay": 0.55,
+    "AvgFruitWeight": 350
+  },
+  {
+    "BotanicalName": "Solanum lycopersicum Ananastomate",
+    "FriendlyName": "Ananastomate",
+    "GrowthPerDay": 1.25,
+    "AvgFruitWeight": 700
+  },
+  {
+    "BotanicalName": "Solanum lycopersicum Tschernij Prinz",
+    "FriendlyName": "Tschernij Prinz Tomate",
+    "GrowthPerDay": 1.25,
+    "AvgFruitWeight": 250
+  },{
+  "BotanicalName": "Cucurbita pepo Muskat de Provence",
+  "FriendlyName": "Muskat de Provence Kürbis",
+  "GrowthPerDay": 0.87,
+  "AvgFruitWeight": 7500
+},{
+  "BotanicalName": "Cucurbita maxima Red Hokkaido",
+  "FriendlyName": "Roter Hokkaido Kürbis",
+  "GrowthPerDay": 0.87,
+  "AvgFruitWeight": 1000
+},{
+  "BotanicalName": "Cucurbita moschata Butternut",
+  "FriendlyName": "Tschernij Prinz Tomate",
+  "GrowthPerDay": 1.11,
+  "AvgFruitWeight": 1000
+},
+  {
+    "BotanicalName": "Capsicum Pimientos de Padron",
+    "FriendlyName": "Pimientos de Padron",
+    "GrowthPerDay": 1.33,
+    "AvgFruitWeight": 45
+  },
+  {
+    "BotanicalName": "Capsicum Blockpaprika",
+    "FriendlyName": "Blockpaprika",
+    "GrowthPerDay": 1.28,
+    "AvgFruitWeight": 80
+  },
+  {
+    "BotanicalName": "Brassica oleracea var. gongylodes Enrico",
+    "FriendlyName": "Enrico Kohlrabi",
+    "GrowthPerDay": 0.95,
     "AvgFruitWeight": 350
   }
 ]
