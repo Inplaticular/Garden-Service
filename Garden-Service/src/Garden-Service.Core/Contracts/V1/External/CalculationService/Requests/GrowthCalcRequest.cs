@@ -19,7 +19,7 @@ public record GrowthCalcRequest {
 	///     Defines how much the plant was grown yesterday in percent.
 	/// </summary>
 	[Range(1, int.MaxValue, ErrorMessage = "Value should be greater than or equal to 1")]
-	public int RipePercentageYesterday { get; set; }
+	public double RipePercentageYesterday { get; set; }
 
 	/// <summary>
 	///     Defines how much the plant grows each day in percent.

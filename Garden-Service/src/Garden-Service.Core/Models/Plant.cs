@@ -22,10 +22,11 @@ public class Plant {
 
 	//often changed members
 	//growth related
-	public int TimeFromPlanting { get; } = 1;
-
-	public int RipePercentage { get; } = 1;
+	public int DaysToMature { get; set; }
+	public DateTime PlantedAtDateTime { get; set; }
+	public double GrowthPercentage { get; set; } = 1;
+	public double Yield { get; set; } = 0;
 
 	//yield related
-	public int ActFruitCount { get; } = 0;
+	public int ActFruitCount { get; set; } = 0;
 }

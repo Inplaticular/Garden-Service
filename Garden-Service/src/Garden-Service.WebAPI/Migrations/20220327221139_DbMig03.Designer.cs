@@ -3,6 +3,7 @@ using System;
 using Inplanticular.Garden_Service.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Inplanticular.Garden_Service.WebAPI.Migrations
 {
     [DbContext(typeof(GardenContext))]
-    partial class GardenContextModelSnapshot : ModelSnapshot
+    [Migration("20220327221139_DbMig03")]
+    partial class DbMig03
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,22 +63,19 @@ namespace Inplanticular.Garden_Service.WebAPI.Migrations
                     b.Property<int>("ActFruitCount")
                         .HasColumnType("integer");
 
-                    b.Property<int>("DaysToMature")
-                        .HasColumnType("integer");
-
                     b.Property<string>("GardenId")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<double>("GrowthPercentage")
-                        .HasColumnType("double precision");
 
                     b.Property<string>("PlantDataId")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("PlantedAtDateTime")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<int>("RipePercentage")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TimeFromPlanting")
+                        .HasColumnType("integer");
 
                     b.Property<string>("UnitId")
                         .IsRequired()
@@ -101,6 +100,9 @@ namespace Inplanticular.Garden_Service.WebAPI.Migrations
 
                     b.Property<double>("AvgFruitWeight")
                         .HasColumnType("double precision");
+
+                    b.Property<int>("DaysToMature")
+                        .HasColumnType("integer");
 
                     b.Property<string>("FriendlyName")
                         .IsRequired()
